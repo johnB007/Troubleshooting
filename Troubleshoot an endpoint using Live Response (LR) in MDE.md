@@ -24,11 +24,17 @@ Troubleshoot an endpoint using Live Response (LR) in MDE
 
 6.	Followed by the output path.
 <img width="975" height="328" alt="image" src="https://github.com/user-attachments/assets/489b96f9-8d3b-43c8-9529-a28a5079b840" />
+
 7.	Run the following: GetFile "C:\ProgramData\Microsoft\Windows Defender Advanced Threat Protection\Downloads\MDECA\MDEClientAnalyzerResult.zip"
+
 <img width="975" height="578" alt="image" src="https://github.com/user-attachments/assets/2c20bcf3-2f92-4698-94fc-ca1684da9f02" />
+
 8.	Open the downloads folder to verify all files are present in the .zip. MDEClientAnalyzer.htm is the main file you need to open. Unzip all files into a new folder and view results.
+
 <img width="975" height="301" alt="image" src="https://github.com/user-attachments/assets/5e5b1346-aa9f-4ba3-8022-c666d18610c6" />
+
 9.	Look over the results to verify any issues.
+    
 <img width="975" height="593" alt="image" src="https://github.com/user-attachments/assets/5d5cbf7c-406a-4a6d-b0b0-e7a146e43df2" />
 <img width="975" height="592" alt="image" src="https://github.com/user-attachments/assets/2ac1c82c-0f2a-4023-be51-8d90b86fa132" />
 
