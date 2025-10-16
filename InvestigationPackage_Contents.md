@@ -18,7 +18,7 @@ For Windows devices, the package contains the folders described in the following
 | **📁 Scheduled tasks** | Contains a .CSV file listing the scheduled tasks, which can be used to identify routines performed automatically on a chosen device to look for suspicious code that was set to run automatically. |
 | **📁 Security event log** | Contains the security event log, which contains records of sign-in or sign-out activity, or other security-related events specified by the system's audit policy.<br><br>Open the event log file using Event viewer. |
 | **📁 Services** | Contains a .CSV file that lists services and their states. |
-| **📁 Windows Server Message Block (SMB) sessions** | Lists shared access to files, printers, and serial ports and miscellaneous communications between nodes on a network. This can help identify data exfiltration or lateral movement.<br><br>Contains files for SMBInboundSessions and SMBOutboundSession. If there are no sessions (inbound or outbound), you get a text file that tells you that there are no SMB sessions found. |
+| **📁 Windows Server Message Block SMB sessions** | Lists shared access to files, printers, and serial ports and miscellaneous communications between nodes on a network. This can help identify data exfiltration or lateral movement.<br><br>Contains files for SMBInboundSessions and SMBOutboundSession. If there are no sessions (inbound or outbound), you get a text file that tells you that there are no SMB sessions found. |
 | **📁 System Information** | Contains a SystemInformation.txt file that lists system information such as OS version and network cards. |
 | **📁 Temp Directories** | Contains a set of text files that lists the files located in `%Temp%` for every user in the system. This can help to track suspicious files that an attacker might have dropped on the system.<br><br>If the file contains the following message: "The system cannot find the path specified", it means that there's no temp directory for this user, and might be because the user didn't sign in to the system. |
 | **📁 Users and Groups** | Provides a list of files that each represent a group and its members. |
@@ -37,74 +37,74 @@ Each .cab file is a compressed archive containing logs and diagnostics. Here's w
 | **📁 AppAccLauncherDLLInjection.log** | Command and Tracing Files | Logs DLL injections attempted by application access launchers, tracking potential security events or misconfigurations in app execution. Helps investigate injection-based threats or Defender's real-time protection responses. |
 | **📁 AppEvent.txt** | Event and Operational Logs | Application event logs from Defender's monitoring of app behaviors, including starts, stops, and errors. Mirrors subsets of Event Viewer for app-specific telemetry; key for correlating app crashes with Defender actions. |
 | **📁 AppEvent.xml** | Event and Operational Logs | XML-formatted application event data, providing structured details on app interactions with Defender (e.g., blocked executions). Exportable for parsing in tools like PowerShell; useful for automated analysis. |
-| **📁 CacheFileName-dump-2345678...** | System and Component Status | Dump of cached filenames from Defender's scan cache, listing hashed or temporary files observed during scans. Aids in reconstructing recent file activity and optimizing scan performance reviews. |
+| **📁 CacheFileNamedump...** | System and Component Status | Dump of cached filenames from Defender's scan cache, listing hashed or temporary files observed during scans. Aids in reconstructing recent file activity and optimizing scan performance reviews. |
 | **📁 Cbs.log** | System and Component Status | Component-Based Servicing (CBS) log from Windows, capturing system file repairs and updates that may impact Defender components. Essential for diagnosing update failures or corrupted Defender binaries. |
-| **📁 CbsDNList-378906554930...** | System and Component Status | CBS dependency network list, detailing inter-component relationships for servicing. Helps trace why Defender updates or features fail due to missing dependencies. |
-| **📁 customDNList (1)** | Custom Configuration | Custom DNS list entry (part 1), logging user-defined or policy-applied DNS exclusions/blocklists for Defender's network filtering. Useful for verifying custom network protection rules. |
-| **📁 customDNList-637976945630...** | Custom Configuration | Timestamped custom DNS list, containing applied DNS resolutions and blocks. Key for troubleshooting network-based threats or false positives in custom setups. |
-| **📁 customSettings (2)** | Custom Configuration | Custom settings snapshot (instance 2), exporting user or policy-defined configurations like exclusions or scan parameters. Compare across instances to detect changes. |
-| **📁 customSettings-8351677261CA...** | Custom Configuration | Detailed custom settings log with hashes, showing effective vs. intended configs. Vital for auditing policy application in enterprise environments. |
-| **📁 customSupportedURIs (4)** | Custom Configuration | Custom supported URIs list (instance 4), tracking allowed or monitored web resources. Helps investigate web protection bypasses or custom allowlists. |
-| **📁 customSupportedURIs-63830606...** | Custom Configuration | Timestamped custom URI support data, including resolution logs. Useful for network protection troubleshooting, e.g., blocked legitimate sites. |
-| **📁 customSupportedURIs-639123...** | Custom Configuration | Additional custom URI mappings, focusing on historical supports. Cross-reference with network logs for evasion attempts. |
+| **📁 CbsDNList...** | System and Component Status | CBS dependency network list, detailing inter-component relationships for servicing. Helps trace why Defender updates or features fail due to missing dependencies. |
+| **📁 customDNList** | Custom Configuration | Custom DNS list entry (part 1), logging user-defined or policy-applied DNS exclusions/blocklists for Defender's network filtering. Useful for verifying custom network protection rules. |
+| **📁 customDNList...** | Custom Configuration | Timestamped custom DNS list, containing applied DNS resolutions and blocks. Key for troubleshooting network-based threats or false positives in custom setups. |
+| **📁 customSettings** | Custom Configuration | Custom settings snapshot (instance 2), exporting user or policy-defined configurations like exclusions or scan parameters. Compare across instances to detect changes. |
+| **📁 customSettingsCA...** | Custom Configuration | Detailed custom settings log with hashes, showing effective vs. intended configs. Vital for auditing policy application in enterprise environments. |
+| **📁 customSupportedURIs** | Custom Configuration | Custom supported URIs list (instance 4), tracking allowed or monitored web resources. Helps investigate web protection bypasses or custom allowlists. |
+| **📁 customSupportedURIs...** | Custom Configuration | Timestamped custom URI support data, including resolution logs. Useful for network protection troubleshooting, e.g., blocked legitimate sites. |
+| **📁 customSupportedURIs...** | Custom Configuration | Additional custom URI mappings, focusing on historical supports. Cross-reference with network logs for evasion attempts. |
 | **📁 DpRegistry.txt** | Registry and Configuration | Registry dump for Data Protection (DP) components in Defender, covering encryption and secure storage keys. Critical for issues with quarantined file handling or secure data features. |
 | **📁 DpSR.txt** | Registry and Configuration | Data Protection Secure Remote (SR) registry export, detailing remote access policies for protected data. Aids in cloud-integrated protection diagnostics. |
 | **📁 DeviceControlInfo.txt** | System and Component Status | Information on device control policies (e.g., USB restrictions), including enabled rules and enforcement logs. Essential for endpoint DLP or peripheral threat investigations. |
 | **📁 FileVersions.txt** | System and Component Status | List of file versions for Defender binaries and dependencies (e.g., .exe, .dll). Use to verify update integrity and version mismatches causing errors. |
-| **📁 FileVersions.txt (Mitiga)** | System and Component Status | Mitigated file versions log, flagging vulnerable or patched files. Helps prioritize vulnerability assessments in Defender scans. |
+| **📁 FileVersions.txt Mitiga** | System and Component Status | Mitigated file versions log, flagging vulnerable or patched files. Helps prioritize vulnerability assessments in Defender scans. |
 | **📁 FlTMgrInfo.txt** | System and Component Status | Filter Manager (FltMgr) information, logging file system mini-filter drivers like WdFilter.sys. Key for real-time protection troubleshooting, e.g., filter load failures. |
 | **📁 FltUtilJournalInfo.txt** | System and Component Status | Filter Utility journal for file system operations, detailing journaling events filtered by Defender. Useful for deep-dive into I/O monitoring and performance impacts. |
 | **📁 IEFT.txt** | Registry and Configuration | Internet Explorer Feature Table (IEFT) dump, covering legacy browser security settings integrated with Defender. Relevant for older web threat detections. |
 | **📁 IEO.txt** | Registry and Configuration | Internet Explorer Options export, including zone settings and security levels. Helps correlate browser-based threats with Defender's web protection. |
 | **📁 MpCmdRun.log** | Command and Tracing Files | Primary log of MpCmdRun.exe executions, capturing commands, outputs, and errors (e.g., scans, updates). Core for reproducing diagnostic collection steps. |
-| **📁 MpCmdRun-LocalService.log** | Command and Tracing Files | MpCmdRun logs under LocalService context, focusing on service-level operations like background scans. Isolate service-specific failures. |
-| **📁 MpCmdRun-NetworkService.log** | Command and Tracing Files | NetworkService-context MpCmdRun logs, detailing network-dependent tasks (e.g., signature downloads). Crucial for connectivity issues. |
-| **📁 MpCmdRun-NetworkService.log.bak** | Command and Tracing Files | Backup of NetworkService MpCmdRun log, preserving prior session data for comparison. Use for historical analysis. |
-| **📁 MpCmdRun-SystemTemp.log** | Command and Tracing Files | System temporary context MpCmdRun logs, tracking temp file handling during scans. Helps debug temp-related errors or cleanups. |
-| **📁 MpCmdRun-SystemTemp.log.bak** | Command and Tracing Files | Backup of SystemTemp MpCmdRun log, for rollback analysis of temp operations. |
-| **📁 MPDetection-2050917-114455.log** | Detection and Threat History | Timestamped detection log, listing threats with paths, hashes (SHA1/MD5), timestamps, and actions (e.g., quarantine). Primary for threat forensics. |
-| **📁 MPDeviceControl-2050915-1027...** | Detection and Threat History | Device control detection events, logging blocked/allowed devices (e.g., USB). Ties into DLP policy enforcement reviews. |
+| **📁 MpCmdRunLocalService.log** | Command and Tracing Files | MpCmdRun logs under LocalService context, focusing on service-level operations like background scans. Isolate service-specific failures. |
+| **📁 MpCmdRunNetworkService.log** | Command and Tracing Files | NetworkService-context MpCmdRun logs, detailing network-dependent tasks (e.g., signature downloads). Crucial for connectivity issues. |
+| **📁 MpCmdRunNetworkService.log.bak** | Command and Tracing Files | Backup of NetworkService MpCmdRun log, preserving prior session data for comparison. Use for historical analysis. |
+| **📁 MpCmdRunSystemTemp.log** | Command and Tracing Files | System temporary context MpCmdRun logs, tracking temp file handling during scans. Helps debug temp-related errors or cleanups. |
+| **📁 MpCmdRunSystemTemp.log.bak** | Command and Tracing Files | Backup of SystemTemp MpCmdRun log, for rollback analysis of temp operations. |
+| **📁 MPDetection.log** | Detection and Threat History | Timestamped detection log, listing threats with paths, hashes (SHA1/MD5), timestamps, and actions (e.g., quarantine). Primary for threat forensics. |
+| **📁 MPDeviceControl...** | Detection and Threat History | Device control detection events, logging blocked/allowed devices (e.g., USB). Ties into DLP policy enforcement reviews. |
 | **📁 MPOperationalEvents.txt** | Event and Operational Logs | Export of Operational channel events from Windows Defender Event Log, including scan starts/completions, detections, and errors (e.g., Event ID 1000-1024). Mirrors Event Viewer for comprehensive timelines. |
 | **📁 MPOperationalEvents.txt.bak** | Event and Operational Logs | Backup of operational events, preserving pre-collection state for delta analysis. |
 | **📁 MPRegistry.txt** | Registry and Configuration | Full Defender registry export (e.g., `HKLM\SOFTWARE\Microsoft\Windows Defender`), showing settings, exclusions, and policies. Essential for config mismatch diagnostics. |
-| **📁 MPSCAN-20291047.log** | Event and Operational Logs | Timestamped scan log, detailing full/quick/custom scan progress, files checked, and results. Use to verify scan efficacy and coverage. |
+| **📁 MPSCAN.log** | Event and Operational Logs | Timestamped scan log, detailing full/quick/custom scan progress, files checked, and results. Use to verify scan efficacy and coverage. |
 | **📁 MPSigUpdate.log** | Update and Signature Files | Signature update log, tracking download attempts, versions, and failures from Microsoft Update. Critical for outdated definitions issues. |
 | **📁 MPStateInfo.txt** | System and Component Status | Current Defender state snapshot (e.g., enabled features, service health). Quick health check for onboarding or runtime problems. |
-| **📁 MPLog-2050913-182800.log** | Event and Operational Logs | Verbose MP (Malware Protection) operational log, with timestamps, file paths, hashes, scan results, and telemetry (e.g., cloud queries). Core artifact for behavioral and real-time events. |
-| **📁 MPLog-2050909-13240.log** | Event and Operational Logs | Additional verbose MP log instance, focusing on prior session details. Compare with current for trend analysis. |
+| **📁 MPLog.log** | Event and Operational Logs | Verbose MP (Malware Protection) operational log, with timestamps, file paths, hashes, scan results, and telemetry (e.g., cloud queries). Core artifact for behavioral and real-time events. |
+| **📁 MPLog.log** | Event and Operational Logs | Additional verbose MP log instance, focusing on prior session details. Compare with current for trend analysis. |
 | **📁 MPSupportEffectiveConfig.json** | Registry and Configuration | JSON export of effective support configurations, merging GPO/MDM/local settings. Parse for policy conflicts. |
-| **📁 MPSupportProtectionSettings.2ecc...** | Registry and Configuration | Protection settings dump with hash, detailing real-time/behavioral toggles. Useful for feature enablement verification. |
+| **📁 MPSupportProtectionSettings.ecc...** | Registry and Configuration | Protection settings dump with hash, detailing real-time/behavioral toggles. Useful for feature enablement verification. |
 | **📁 NetworkProtectionSettings** | Network Protection | Base network protection settings file, listing mode (block/audit), scopes, and indicators. Foundation for web threat troubleshooting. |
-| **📁 NetworkProtectionSettings (5)** | Network Protection | Instance 5 of network settings, capturing runtime applications. Track changes over collections. |
-| **📁 NetworkProtectionSettings.2.985...** | Network Protection | Timestamped network settings, including proxy integrations. Key for false positive blocks. |
-| **📁 NetworkProtectionSettings.2.1ecc...** | Network Protection | Versioned network protection config, with ECC (error-correcting code?) details. Aids in advanced network filtering reviews. |
+| **📁 NetworkProtectionSettings** | Network Protection | Instance 5 of network settings, capturing runtime applications. Track changes over collections. |
+| **📁 NetworkProtectionSettings.....** | Network Protection | Timestamped network settings, including proxy integrations. Key for false positive blocks. |
+| **📁 NetworkProtectionSettings..ecc...** | Network Protection | Versioned network protection config, with ECC (error-correcting code?) details. Aids in advanced network filtering reviews. |
 | **📁 NetworkProtectionState.txt** | Network Protection | Current state of network protection (e.g., active blocks, connections). Real-time status for incident response. |
 | **📁 PrinterInfo.txt** | System and Component Status | Printer configuration and security info, relevant if print spooler threats are suspected. Logs potential peripheral vectors. |
 | **📁 SecurityHealthApp.txt** | System and Component Status | Health report from Security Health App (e.g., Windows Security), summarizing Defender status and recommendations. Quick overview for compliance. |
 | **📁 SecurityHealthRegistry.txt** | Registry and Configuration | Registry keys for security health monitoring, tracking app integrations. Useful for third-party AV conflicts. |
-| **📁 SenseIRTraceLogger13402667996...** | Command and Tracing Files | Sense (Defender sensor) IR (Incident Response) trace log, detailing endpoint sensor data uploads to cloud. For EDR telemetry analysis. |
-| **📁 SenseIRTraceLogger13408583812...** | Command and Tracing Files | Additional Sense IR trace, focusing on behavioral signals. Parse for advanced persistent threat indicators. |
+| **📁 SenseIRTraceLogger...** | Command and Tracing Files | Sense (Defender sensor) IR (Incident Response) trace log, detailing endpoint sensor data uploads to cloud. For EDR telemetry analysis. |
+| **📁 SenseIRTraceLogger...** | Command and Tracing Files | Additional Sense IR trace, focusing on behavioral signals. Parse for advanced persistent threat indicators. |
 | **📁 SetupAct.log** | System and Component Status | Setup activation log from Windows setup, capturing Defender installation events. Diagnose onboarding failures. |
 | **📁 Setuperr.log** | System and Component Status | Setup error log, listing failures during Defender or Windows updates. Correlate with update issues. |
-| **📁 SH-1002025-20357-1ff226...** | System and Component Status | Shim (compatibility layer) hash log, tracking file shims for legacy app compatibility with Defender scans. For version-specific bugs. |
-| **📁 SH-1002025-9152-7ff226...** | System and Component Status | Additional shim hash data, aiding in compatibility troubleshooting. |
+| **📁 SHff...** | System and Component Status | Shim (compatibility layer) hash log, tracking file shims for legacy app compatibility with Defender scans. For version-specific bugs. |
+| **📁 SHff...** | System and Component Status | Additional shim hash data, aiding in compatibility troubleshooting. |
 | **📁 SinkholeCache** | Network Protection | Cache of sinkholed (blocked) domains/IPs by Defender's network protection. Review for evasion attempts or misconfigs. |
-| **📁 SinkholeCache.63838056...** | Network Protection | Timestamped sinkhole cache, listing resolved bad domains. Forensic gold for phishing/pharming investigations. |
-| **📁 SnapshotInfo.txt-6885904...** | System and Component Status | System snapshot info with hash, capturing state at collection time (e.g., processes, modules). Baseline for anomaly detection. |
+| **📁 SinkholeCache....** | Network Protection | Timestamped sinkhole cache, listing resolved bad domains. Forensic gold for phishing/pharming investigations. |
+| **📁 SnapshotInfo.txt...** | System and Component Status | System snapshot info with hash, capturing state at collection time (e.g., processes, modules). Baseline for anomaly detection. |
 | **📁 supportedConnections** | Network Protection | List of supported network connections, including protocols and ports monitored by Defender. Config validation tool. |
-| **📁 supportedConnections (6)** | Network Protection | Instance 6 of connection supports, with runtime data. Track dynamic changes. |
-| **📁 supportedConnections.63838056...** | Network Protection | Timestamped supported connections log. Useful for bandwidth or proxy issues. |
-| **📁 supportedConnections.6895004...** | Network Protection | Additional connection mapping, focusing on historical supports. |
+| **📁 supportedConnections** | Network Protection | Instance 6 of connection supports, with runtime data. Track dynamic changes. |
+| **📁 supportedConnections....** | Network Protection | Timestamped supported connections log. Useful for bandwidth or proxy issues. |
+| **📁 supportedConnections....** | Network Protection | Additional connection mapping, focusing on historical supports. |
 | **📁 supportedURIs** | Custom Configuration | Base list of supported URIs for web/cloud integrations. Foundation for URI-based protections. |
-| **📁 supportedURIs (7)** | Custom Configuration | Instance 7 of URI supports, capturing policy-applied lists. Compare for drifts. |
+| **📁 supportedURIs** | Custom Configuration | Instance 7 of URI supports, capturing policy-applied lists. Compare for drifts. |
 | **📁 System.evt** | Event and Operational Logs | Legacy system event log (.evt format), including Defender-related system events pre-Win10. For historical analysis on upgraded systems. |
 | **📁 SystemInfo.txt** | System and Component Status | General system info dump (OS version, hardware, Defender build). Essential onboarding and compatibility check. |
-| **📁 TaskSchedulerInfo-Internal.log** | System and Component Status | Internal Task Scheduler log for Defender tasks (e.g., scheduled scans). Diagnose missed scans or task failures. |
-| **📁 TaskSchedulerInfo-Windows.xml** | System and Component Status | XML export of Windows Task Scheduler defs for Defender (e.g., MpCmdRun tasks). Parse for misconfigurations. |
+| **📁 TaskSchedulerInfoInternal.log** | System and Component Status | Internal Task Scheduler log for Defender tasks (e.g., scheduled scans). Diagnose missed scans or task failures. |
+| **📁 TaskSchedulerInfoWindows.xml** | System and Component Status | XML export of Windows Task Scheduler defs for Defender (e.g., MpCmdRun tasks). Parse for misconfigurations. |
 | **📁 topTraffic** | Network Protection | Top network traffic summary, ranking connections by volume. Identify anomalous traffic blocked by Defender. |
-| **📁 topTraffic (8)** | Network Protection | Instance 8 of top traffic, with metrics. Trend analysis for performance impacts. |
-| **📁 topTraffic.638041746094982** | Network Protection | Timestamped top traffic log (638041746094982), detailing high-volume endpoints. Forensic for data exfil attempts. |
-| **📁 topTraffic.638041746094982 (9)** | Network Protection | Duplicate/timestamped variant of top traffic, for multi-session captures. |
+| **📁 topTraffic** | Network Protection | Instance 8 of top traffic, with metrics. Trend analysis for performance impacts. |
+| **📁 topTraffic.** | Network Protection | Timestamped top traffic log (638041746094982), detailing high-volume endpoints. Forensic for data exfil attempts. |
+| **📁 topTraffic.** | Network Protection | Duplicate/timestamped variant of top traffic, for multi-session captures. |
 | **📁 UICache** | System and Component Status | User Interface cache for Defender apps (e.g., Windows Security), storing UI state and preferences. Minor, but useful for UI glitch troubleshooting. |
 | **📁 UICache.log** | System and Component Status | Log of UI cache operations, tracking refreshes and errors. |
 | **📁 WamStateCache** | System and Component Status | Windows Audio Manager (Wam) state cache, potentially tied to audio file scans or mitigations. Niche for multimedia threats. |
@@ -115,11 +115,11 @@ Each .cab file is a compressed archive containing logs and diagnostics. Here's w
 | **📁 WSCRegistry.txt** | Registry and Configuration | WSC registry export, covering security provider registrations. For integration with other security tools. |
 | **📁 diag.xml** | Diagnostic and Misc | General diagnostic XML report, summarizing collection metadata and errors. Overview file for CAB integrity. |
 | **📁 diagwn.xml** | Diagnostic and Misc | Windows-specific diagnostic XML, focusing on network and Defender diagnostics. Complements network logs. |
-| **📁 FlTMgrSoft.txt (Mitiga)** | System and Component Status | Mitigated Filter Manager software list, flagging risky filters. Enhances vulnerability scans. |
-| **📁 Microsoft-Windows-Security-Mitiga...** | Registry and Configuration | Partial registry dump for Microsoft Security Mitigation (Mitiga), covering exploit guards. For ASR rule troubleshooting. |
-| **📁 MitigationPolicies-10022025-3152...** | Registry and Configuration | Timestamped mitigation policies log, detailing applied protections (e.g., CFG, DEP). Key for exploit prevention reviews. |
-| **📁 MPWppCoreTracing-2025101-11...** | Command and Tracing Files | Windows Software Trace Preprocessor (WPP) core tracing log (binary/text mix), for low-level Defender engine traces. Advanced debugging for crashes. |
-| **📁 MPWppTracing-2025101-5234...** | Command and Tracing Files | Additional WPP tracing instance, capturing performance and error traces. Requires tools like TraceFmt for full decode. |
+| **📁 FlTMgrSoft.txt Mitiga** | System and Component Status | Mitigated Filter Manager software list, flagging risky filters. Enhances vulnerability scans. |
+| **📁 MicrosoftWindowsSecurityMitiga...** | Registry and Configuration | Partial registry dump for Microsoft Security Mitigation (Mitiga), covering exploit guards. For ASR rule troubleshooting. |
+| **📁 MitigationPolicies...** | Registry and Configuration | Timestamped mitigation policies log, detailing applied protections (e.g., CFG, DEP). Key for exploit prevention reviews. |
+| **📁 MPWppCoreTracing...** | Command and Tracing Files | Windows Software Trace Preprocessor (WPP) core tracing log (binary/text mix), for low-level Defender engine traces. Advanced debugging for crashes. |
+| **📁 MPWppTracing...** | Command and Tracing Files | Additional WPP tracing instance, capturing performance and error traces. Requires tools like TraceFmt for full decode. |
 | **📁 rt.log** | Event and Operational Logs | Real-time (RT) protection log, logging on-access scans and blocks. High-volume; grep for threats. |
 | **📁 setuact.log** | System and Component Status | Setup activity log variant, focusing on activation events. Similar to SetupAct but more granular. |
 | **📁 setuper.log** | System and Component Status | Setup error log variant, with extended details. Pair with Setuperr for full picture. |
