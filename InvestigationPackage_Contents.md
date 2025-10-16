@@ -27,7 +27,7 @@ For Windows devices, the package contains the folders described in the following
 
 ## WdSupportLogs
 
-### Detailed Breakdown of .CAB Files in the Support Folder/MPSupportFiles.cab
+### Detailed Breakdown of Files in the Support Folder/MPSupportFiles.cab
 
 Each .cab file is a compressed archive containing logs and diagnostics. Here's what some of the common ones include:
 
