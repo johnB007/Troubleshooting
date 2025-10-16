@@ -1,4 +1,7 @@
 # Investigation Package Contents for Windows Devices
+Purpose: Forensic snapshot collected during active incident response to identify the current state of a device and understand tools and techniques used by an attacker. 
+
+When to Use: During or after a security incident, When investigating alerts or suspicious activity, As part of the investigation or response process, Take response actions on a device in Microsoft, When you need a point-in-time forensic snapshot, or deep troubleshooting from an EDR perspective. 
 
 For Windows devices, the package contains the folders described in the following table:
 
