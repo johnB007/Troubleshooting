@@ -4,6 +4,8 @@ Purpose: Forensic snapshot collected during active incident response to identify
 
 When to Use: During or after a security incident, When investigating alerts or suspicious activity, As part of the investigation or response process, Take response actions on a device in Microsoft, When you need a point-in-time forensic snapshot, or deep troubleshooting from an EDR perspective. 
 
+## Whats in the Package When Downloaded?
+
 <img width="2505" height="414" alt="image" src="https://github.com/user-attachments/assets/3b22e53e-2b0d-4543-a146-5ca77373466d" />
 <img width="2206" height="381" alt="image" src="https://github.com/user-attachments/assets/18e15e82-a98b-4fc0-a8e2-78a3b595f784" />
 <img width="2547" height="1608" alt="image" src="https://github.com/user-attachments/assets/198f010c-059d-4d07-a8a3-07c315ab132c" />
