@@ -15,6 +15,7 @@ Tracking whether software is still installed or has been removed.
 Investigating the context of installations (e.g., command-line arguments, initiating account).   
 
 ## KQL 
+Must place DeviceNmae in | where DeviceName == "" and at the bootom of | project DeviceName = "",
 ```KQL
 DeviceProcessEvents
 | where Timestamp > ago(180d)
@@ -73,7 +74,7 @@ DeviceProcessEvents
     )
 | project 
     LatestTimestamp, 
-    DeviceName = "camslaptop007",
+    DeviceName = "xxxxxx", //Replace with DeviceName
     InstallerFile, 
     CurrentStatus,
     PrimaryInstaller,
