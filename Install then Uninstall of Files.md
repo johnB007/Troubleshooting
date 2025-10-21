@@ -1,8 +1,20 @@
 ## CX Wanted a way to determine when a specifc user installed and then unistalled a file by the exact time.
 
+## Device Inventory Only Shows Active Installed Software and not "Point in Time or Install/Uninstalled" w/ Timestamp - The Problem Statement
+
+<img width="3164" height="1548" alt="image" src="https://github.com/user-attachments/assets/a0e6ac88-2856-4b1d-9ece-8a89a730f26c" />
+
+## Use Case:  
+CX asked for a way of detecting a scenario where a rogue user installs, uses, and then quickly uninstalls software before MDE can update the software inventory in MDVM.
+ 
+This query can also be useful for:  
+
+Auditing software changes on a device.  
+Identifying unauthorized or automated installations (e.g., SYSTEM installs with silent flags).  
+Tracking whether software is still installed or has been removed.  
+Investigating the context of installations (e.g., command-line arguments, initiating account).   
+
 ## KQL 
-
-
 ```KQL
 DeviceProcessEvents
 | where Timestamp > ago(180d)
@@ -30,7 +42,6 @@ DeviceProcessEvents
         ProcessCommandLine has_any("uninst", "uninstall", "/uninstall", "/x", "remove"), "UNINSTALL",
         "INSTALL"
     ),
-    // ✅ FIXED: User vs System detection (SIMPLE VERSION)
     InstalledBy = case(
         AccountName in~ ("SYSTEM", "NT AUTHORITY\\SYSTEM", "LOCAL SERVICE", "NETWORK SERVICE"), "SYSTEM",
         ProcessCommandLine has_any("/qn", "/quiet", "/passive"), "SYSTEM",
@@ -81,9 +92,7 @@ DeviceProcessEvents
 
 <img width="2968" height="1682" alt="image" src="https://github.com/user-attachments/assets/8fd9bb12-2681-49c9-a82b-b9bf82ac6946" />
 
-## Device Inventory Only Shows Active Installed Software and not "Point in Time or Install/Uninstalled"
 
-<img width="3164" height="1548" alt="image" src="https://github.com/user-attachments/assets/a0e6ac88-2856-4b1d-9ece-8a89a730f26c" />
 
 
 
