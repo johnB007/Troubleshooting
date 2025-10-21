@@ -8,6 +8,9 @@ Update your antivirus protection, even if Microsoft Defender Antivirus is runnin
 
 Microsoft Defender Antivirus uses cloud-delivered protection, also known as Microsoft Advanced Protection Service, or MAPS. Defender Antivirus periodically downloads dynamic security intelligence updates. These updates don't replace regular security intelligence updates. Engine updates are included with security intelligence updates and are released monthly.
 
+<img width="2834" height="1346" alt="image" src="https://github.com/user-attachments/assets/31c85b30-25c1-4083-a3dd-eab2bfcb7972" />
+
+
 Cloud-delivered protection is always on and requires an active connection to the internet to function. Security intelligence updates occur on a scheduled cadence which you can configure using a policy.
 
 ## Product updates or Plafrom Updates
