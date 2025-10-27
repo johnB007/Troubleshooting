@@ -19,6 +19,12 @@ of custom IOCs using SHA256 file hashes, MDAV exclusions only support file path,
 
 The official Configure custom exclusions article lists only file/folder path, process, extension, or process-opened files as supported exclusion types—no mention of hash-based exclusions.
 
+## These are the 4 Exclusion Types with	Description
+1. Process:	Disables real-time scanning on files that are opened by specific processes, i.e., specified (source) process is not scanned.    
+2. Path:	Excludes entire file paths from real-time/scheduled scans.
+3. Extension:	Disables real-time/scheduled/custom scans on certain file extensions.
+4. IpAddress:	Disables network packet inspection incoming from a certain IP.
+
 ##  Hash-Based Exclusions Are Not Supported by MDAV
 No where in MSFT docs has hash based excludions listed.
 
@@ -47,5 +53,7 @@ Tamper Protection or Policy Override:
 In enterprise environments, exclusions may be overridden by security policies or tamper protection settings.
 
 <img width="1686" height="852" alt="image" src="https://github.com/user-attachments/assets/f07deed4-29a5-4930-b180-2ffa021cc56b" />
+<img width="1600" height="207" alt="image" src="https://github.com/user-attachments/assets/7f28cc2e-7708-4e6f-a28e-a18ca1fde0a5" />
+
 
 
