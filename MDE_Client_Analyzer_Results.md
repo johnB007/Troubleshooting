@@ -109,3 +109,6 @@
 - **Warnings:** Address the outdated security intelligence version by updating Defender definitions.  
 - **Errors:** None found, so no critical failures.  
 - **Informational:** All connectivity and environment checks passed, indicating healthy Defender and EDR operation.
+
+<img width="1216" height="281" alt="image" src="https://github.com/user-attachments/assets/6e199b95-af39-4b98-8d21-6ee7939a0ba8" />
+
