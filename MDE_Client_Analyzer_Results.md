@@ -1,5 +1,5 @@
 
-# MDE Client Analyzer Results Explained
+# MDE Client Analyzer Results.html Explained
 
 **Script Version:** 27Jul2025  
 **Script RunTime:** 16/10/2025 9:54:23 AM -04:00
