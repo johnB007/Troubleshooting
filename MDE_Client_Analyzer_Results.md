@@ -92,7 +92,7 @@
 
 | Category | Severity | Id | Test Name | Results | Guidance |
 |----------|----------|----|-----------|---------|----------|
-| Configuration | Warning | 121012 | SecurityIntelligenceVersion | Outdated security intelligence version. Update recommended for optimal protection. | [Update Guidance](https://learn.microsoft.com/defender-endpoint/microsoft-defender-antivirus-updates#security-intelligence-updates) |
+| Configuration | Warning | 121012 | SecurityIntelligenceVersion | Outdated security intelligence version. Update recommended for optimal protection. | https://learn.microsoft.com/defender-endpoint/microsoft-defender-antivirus-updates#security-intelligence-updates |
 | Configuration | Informational | 120037 | AntiSpoofingStable | Device is anti-spoofing capable and stable. | N/A |
 | Connectivity | Informational | 130017 | EDRCloud CnC | Connection to Defender for Endpoint (CnC) cloud service successful. | N/A |
 | Connectivity | Informational | 130018 | EDRCloud Cyber | Connection to Defender for Endpoint (Cyber) cloud service successful. | N/A |
@@ -103,6 +103,14 @@
 | Connectivity | Informational | 130012 | AVCloud | Network connection is not metered. | N/A |
 | Connectivity | Informational | 130010 | CertRevocation | Certificate validation for Defender for Endpoint cloud service successful. | N/A |
 | Environment | Informational | 110005 | CheckPPL | Sensor is PPL protected as expected. | N/A |
+
+---
+
+# Troubleshooting Each Test Name
+
+If any of these checks return **warnings or errors**, follow the steps below to remediate.
+
+---
 
 ## Troubleshooting Guidance
 
