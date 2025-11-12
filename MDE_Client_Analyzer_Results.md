@@ -6,10 +6,6 @@
 <img width="3124" height="1889" alt="image" src="https://github.com/user-attachments/assets/182e2028-fde4-41fc-ae9a-898ef237eb47" />
 <img width="3124" height="1891" alt="image" src="https://github.com/user-attachments/assets/ac3b487b-3871-494f-b2dc-fefa2eea769f" />
 
-
-
-
-
 ---
 
 ## Device Information
@@ -78,31 +74,23 @@
 | Sense service Status | Running | EDR service is running. |
 | Sense service StartType | Automatic | EDR service starts automatically. |
 
-## Check Results Summary
-
-| Error | Warning | Informational |
-|-------|---------|--------------|
-| 0     | 1       | 10           |
-
-- **Error:** Critical issues found (none here).  
-- **Warning:** Issues that may need attention (1 found).  
-- **Informational:** General info or successful checks (10 found).
 
 ## Detailed Results
 
-| Category      | Test Name                   | Results                                                                 | PS Remediation                                                                                     | Log Source                                                                 |
-|---------------|-----------------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| Configuration | SecurityIntelligenceVersion | Outdated security intelligence version reduces detection capability.    | `Update-MpSignature`                                                                              | • Event Viewer → Microsoft → Windows → Windows Defender/Operational<br>• Event IDs: 2000–2006 |
-| Configuration | AntiSpoofingStable          | Anti-spoofing not stable or missing.                                   | `Get-WmiObject -Namespace "root\Microsoft\Windows\Hello" -Class WinBioSetting`                   | • Event Viewer → Microsoft → Windows → DeviceGuard/Operational |
-| Connectivity  | EDRCloud CnC                | Cannot connect to Command & Control cloud service.                     | `Test-NetConnection -ComputerName winatp-gw.microsoft.com -Port 443`<br>`netsh winhttp show proxy`| • System logs |
-| Connectivity  | EDRCloud Cyber              | Cyber cloud endpoint unreachable.                                      | `Test-NetConnection cyber.microsoft.com -Port 443`                                               | • Sense logs |
-| Connectivity  | EDRCloud AutoIR             | Auto Investigation & Response service unreachable.                     | `Test-NetConnection autoir.microsoft.com -Port 443`                                              | • Sense logs |
-| Connectivity  | AVCloud SampleUpload        | Sample upload service blocked.                                         | `Test-NetConnection wdcp.microsoft.com -Port 443`                                                | • Event Viewer → Microsoft → Windows → Sense/Operational<br>• Event IDs: 1, 2, 5 |
-| Connectivity  | EDRCloud MdeConfigMgr       | Configuration Manager service unreachable.                              | `Test-NetConnection config.security.microsoft.com -Port 443`                                     | • Sense logs |
-| Connectivity  | AVCloud                     | Defender AV cloud unreachable.                                         | `Test-NetConnection winatp-gw.microsoft.com -Port 443`                                           | • Windows Defender logs |
-| Connectivity  | Current Network Connection  | Network marked as metered or restricted.                               | `Get-NetConnectionProfile`                                                                        | • System logs |
-| Connectivity  | CertRevocation              | Certificate validation failed.                                         | `certutil -verifyCTL AuthRoot`                                                                    | • Sense logs and Windows Crypto logs |
-| Environment   | CheckPPL                    | Protected Process Light (PPL) not enabled.                             | `Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "Sense" }`                        | • Windows Defender Operational logs |
+| Category      | Test Name                   | Results                                      | PS Remediation                                                                                     | Log Source                                                                 |
+|---------------|-----------------------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| Configuration | SecurityIntelligenceVersion | Outdated security intelligence version reduces detection capability. | `Update-MpSignature`                                                                                | • Event Viewer → Microsoft → Windows → Windows Defender/Operational<br>• Event IDs: 2000–2006 |
+| Configuration | AntiSpoofingStable          | Policy not configured; device falls back to camera/driver capability. | Check policy: `(gp 'HKLM:\SOFTWARE\Policies\Microsoft\Biometrics\FacialFeatures' -Name UseEnhancedAntiSpoofing -EA SilentlyContinue).UseEnhancedAntiSpoofing -eq 1` | • Event Viewer → Microsoft → Windows → DeviceGuard/Operational<br>• Microsoft → Windows → Biometrics/Operational |
+| Connectivity  | EDRCloud CnC                | Cannot connect to Command & Control cloud service. | `Test-NetConnection winatp-gw.microsoft.com -Port 443`<br>`netsh winhttp show proxy`               | • System logs |
+| Connectivity  | EDRCloud Cyber              | Cyber cloud endpoint unreachable.           | `Test-NetConnection winatp-gw.microsoft.com -Port 443`<br>`Test-NetConnection config.security.microsoft.com -Port 443`<br>`netsh winhttp show proxy` | • Sense logs |
+| Connectivity  | EDRCloud AutoIR             | Auto Investigation & Response service unreachable. | `Test-NetConnection winatp-gw.microsoft.com -Port 443`<br>`Test-NetConnection config.security.microsoft.com -Port 443`<br>`netsh winhttp show proxy` | • Sense logs |
+| Connectivity  | AVCloud SampleUpload        | Sample upload service blocked.              | `Test-NetConnection wdcp.microsoft.com -Port 443`                                                  | • Event Viewer → Microsoft → Windows → Sense/Operational<br>• Event IDs: 1, 2, 5 |
+| Connectivity  | EDRCloud MdeConfigMgr       | Configuration Manager service unreachable.   | `Test-NetConnection config.security.microsoft.com -Port 443`                                       | • Sense logs |
+| Connectivity  | AVCloud                     | Defender AV cloud unreachable.              | `Test-NetConnection winatp-gw.microsoft.com -Port 443`                                             | • Windows Defender logs |
+| Connectivity  | Current Network Connection  | Network marked as metered or restricted.    | `Get-NetConnectionProfile`                                                                          | • System logs |
+| Connectivity  | CertRevocation              | Certificate validation failed.              | `certutil -verifyCTL AuthRoot`<br>`Test-NetConnection winatp-gw.microsoft.com -Port 443 \| Select-Object ComputerName, TcpTestSucceeded` | • Sense logs and Windows Crypto logs |
+| Environment   | CheckPPL                    | Protected Process Light (PPL) not enabled or Sense service not running. | `Get-Service Sense`<br>`Get-Process -Name Sense -ErrorAction SilentlyContinue`                     | • Windows Defender Operational logs |
+
 
 ---
 
@@ -114,8 +102,8 @@ If any of these checks return **warnings or errors**, follow the steps below to 
 
 ## Troubleshooting Guidance
 
-- **Warnings:** Address the outdated security intelligence version by updating Defender definitions.  
-- **Errors:** None found, so no critical failures.  
+- **Warnings:** These indicate potential misconfigurations or connectivity issues that could reduce protection or impact automated investigation  
+- **Errors:** These represent critical failures where MDE cannot operate as intended—such as certificate validation failures, blocked cloud connectivity, or missing core services. Immediate remediation is required to ensure the device is protected and reporting correctly. 
 - **Informational:** All connectivity and environment checks passed, indicating healthy Defender and EDR operation.
 
 <img width="1216" height="281" alt="image" src="https://github.com/user-attachments/assets/6e199b95-af39-4b98-8d21-6ee7939a0ba8" />
