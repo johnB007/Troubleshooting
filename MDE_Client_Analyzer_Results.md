@@ -90,19 +90,19 @@
 
 ## Detailed Results
 
-| Category | Severity | Id | Test Name | Results | Guidance |
-|----------|----------|----|-----------|---------|----------|
-| Configuration | Warning | 121012 | SecurityIntelligenceVersion | Outdated security intelligence version. Update recommended for optimal protection. | https://learn.microsoft.com/defender-endpoint/microsoft-defender-antivirus-updates#security-intelligence-updates |
-| Configuration | Informational | 120037 | AntiSpoofingStable | Device is anti-spoofing capable and stable. | N/A |
-| Connectivity | Informational | 130017 | EDRCloud CnC | Connection to Defender for Endpoint (CnC) cloud service successful. | N/A |
-| Connectivity | Informational | 130018 | EDRCloud Cyber | Connection to Defender for Endpoint (Cyber) cloud service successful. | N/A |
-| Connectivity | Informational | 130019 | EDRCloud AutoIR | Connection to Defender for Endpoint (AutoIR) cloud service successful. | N/A |
-| Connectivity | Informational | 130020 | AVCloud SampleUpload | Connection to Defender for Endpoint (SampleUpload) cloud service successful. | N/A |
-| Connectivity | Informational | 130021 | EDRCloud MdeConfigMgr | Connection to Defender for Endpoint (MdeConfigMgr) cloud service successful. | N/A |
-| Connectivity | Informational | 130011 | AVCloud | Connection to Defender Antivirus cloud service successful. | N/A |
-| Connectivity | Informational | 130012 | AVCloud | Network connection is not metered. | N/A |
-| Connectivity | Informational | 130010 | CertRevocation | Certificate validation for Defender for Endpoint cloud service successful. | N/A |
-| Environment | Informational | 110005 | CheckPPL | Sensor is PPL protected as expected. | N/A |
+| Category      | Test Name                   | Results                                                                 | PS Remediation                                                                                     | Log Source                                                                 |
+|---------------|-----------------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| Configuration | SecurityIntelligenceVersion | Outdated security intelligence version reduces detection capability.    | `Update-MpSignature`                                                                              | • Event Viewer → Microsoft → Windows → Windows Defender/Operational<br>• Event IDs: 2000–2006 |
+| Configuration | AntiSpoofingStable          | Anti-spoofing not stable or missing.                                   | `Get-WmiObject -Namespace "root\Microsoft\Windows\Hello" -Class WinBioSetting`                   | • Event Viewer → Microsoft → Windows → DeviceGuard/Operational |
+| Connectivity  | EDRCloud CnC                | Cannot connect to Command & Control cloud service.                     | `Test-NetConnection -ComputerName winatp-gw.microsoft.com -Port 443`<br>`netsh winhttp show proxy`| • System logs |
+| Connectivity  | EDRCloud Cyber              | Cyber cloud endpoint unreachable.                                      | `Test-NetConnection cyber.microsoft.com -Port 443`                                               | • Sense logs |
+| Connectivity  | EDRCloud AutoIR             | Auto Investigation & Response service unreachable.                     | `Test-NetConnection autoir.microsoft.com -Port 443`                                              | • Sense logs |
+| Connectivity  | AVCloud SampleUpload        | Sample upload service blocked.                                         | `Test-NetConnection wdcp.microsoft.com -Port 443`                                                | • Event Viewer → Microsoft → Windows → Sense/Operational<br>• Event IDs: 1, 2, 5 |
+| Connectivity  | EDRCloud MdeConfigMgr       | Configuration Manager service unreachable.                              | `Test-NetConnection config.security.microsoft.com -Port 443`                                     | • Sense logs |
+| Connectivity  | AVCloud                     | Defender AV cloud unreachable.                                         | `Test-NetConnection winatp-gw.microsoft.com -Port 443`                                           | • Windows Defender logs |
+| Connectivity  | Current Network Connection  | Network marked as metered or restricted.                               | `Get-NetConnectionProfile`                                                                        | • System logs |
+| Connectivity  | CertRevocation              | Certificate validation failed.                                         | `certutil -verifyCTL AuthRoot`                                                                    | • Sense logs and Windows Crypto logs |
+| Environment   | CheckPPL                    | Protected Process Light (PPL) not enabled.                             | `Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "Sense" }`                        | • Windows Defender Operational logs |
 
 ---
 
