@@ -1,3 +1,4 @@
+### For Red Team Validation before a test, make sure the settings for MDAV are complete. Also refernced are MDI settings in the end. 
 ### MDAV – Full Status & Policy Reference  for  Get-MpComputerStatus and Get-MpPreference
 
 ### Common Values Legend
@@ -15,39 +16,44 @@ Purpose
 Displays the real-time operational state of Microsoft Defender: engine versions, signature freshness, whether real-time protection is actually running, tamper protection, last scans, etc.
 
 
-| Property                     | Description                                      | Typical Values                |
-|------------------------------|--------------------------------------------------|-------------------------------|
-| AMEngineVersion              | Scanning engine version                          | e.g. 1.1.xxxxx.xxxx           |
-| AMProductVersion             | Overall Defender build                           | e.g. 4.18.xxxxx.xxxx          |
-| AMRunningMode                | Current mode                                     | Normal / Passive / Disabled   |
-| AMServiceEnabled             | Service running                                  | True / False                  |
-| AntispywareEnabled           | Antispyware active                               | True / False                  |
-| AntispywareSignatureAge      | Days since last antispyware update               | 0 = current                   |
-| AntispywareSignatureVersion  | Current antispyware definitions                  | e.g. 1.441.xxx.0              |
-| AntivirusEnabled             | Antivirus active                                 | True / False                  |
-| AntivirusSignatureAge        | Days since last AV update                        | 0 = current                   |
-| AntivirusSignatureVersion    | Current AV definitions                           | e.g. 1.441.xxx.0              |
-| BehaviorMonitorEnabled       | Real-time behavior monitoring                    | True / False                  |
-| ComputerID                   | Unique device ID (masked)                        | GUID                          |
-| DefenderSignaturesOutOfDate  | Signatures outdated                              | True / False                  |
-| DeviceControlState           | USB/removable storage policy                     | Disabled / Enforced / Audit   |
-| FullScanAge                  | Days since last full scan                        | 0 = today                     |
-| IoavProtectionEnabled        | Scan downloads & attachments                     | True / False                  |
-| IsTamperProtected            | Tamper Protection active                         | True / False                  |
-| IsVirtualMachine             | Running as VM                                    | True / False                  |
-| NISEnabled                   | Network Inspection System (exploit protection)   | True / False                  |
-| OnAccessProtectionEnabled    | Real-time file scanning                          | True / False                  |
-| ProductStatus                | Overall health (524288 = fully healthy)          | 524288 = good                 |
-| QuickScanAge                 | Days since last quick scan                       | 0 = today                     |
-| RealTimeProtectionEnabled    | Real-time protection active                      | True / False                  |
-| RebootRequired               | Reboot needed for updates/remediation            | True / False                  |
-| SmartAppControlState         | Smart App Control status                         | Off / On / Evaluation         |
-| TamperProtectionSource       | Managed by                                       | Intune / SCCM / Local
+| Property                          | Description                                      | Typical Values                |
+|-----------------------------------|--------------------------------------------------|-------------------------------|
+| AMEngineVersion                   | Scanning engine version                          | e.g. 1.1.xxxxx.xxxx           |
+| AMProductVersion                  | Overall Defender build                           | e.g. 4.18.xxxxx.xxxx          |
+| AMRunningMode                     | Current mode                                     | Normal / Passive / Disabled   |
+| AMServiceEnabled                  | Service running                                  | True / False                  |
+| AntispywareEnabled                | Antispyware active                               | True / False                  |
+| AntispywareSignatureAge           | Days since last antispyware update               | 0 = current                   |
+| AntispywareSignatureVersion       | Current antispyware definitions                  | e.g. 1.441.xxx.0              |
+| AntispywareSignatureLastUpdated   | Last antispyware signature update timestamp      | DateTime                      |
+| AntivirusEnabled                  | Antivirus active                                 | True / False                  |
+| AntivirusSignatureAge             | Days since last AV update                        | 0 = current                   |
+| AntivirusSignatureVersion         | Current AV definitions                           | e.g. 1.441.xxx.0              |
+| AntivirusSignatureLastUpdated     | Last antivirus signature update timestamp        | DateTime                      |
+| BehaviorMonitorEnabled            | Real-time behavior monitoring                    | True / False                  |
+| ComputerID                        | Unique device ID (masked)                        | GUID                          |
+| DefenderSignaturesOutOfDate       | Signatures outdated                              | True / False                  |
+| DeviceControlState                | USB/removable storage policy                     | Disabled / Enforced / Audit   |
+| FullScanAge                       | Days since last full scan                        | 0 = today                     |
+| FullScanStartTime                 | Last full scan start time                        | DateTime                      |
+| FullScanEndTime                   | Last full scan end time                          | DateTime                      |
+| IoavProtectionEnabled             | Scan downloads & attachments                     | True / False                  |
+| IsTamperProtected                 | Tamper Protection active                         | True / False                  |
+| IsVirtualMachine                  | Running as VM                                    | True / False                  |
+| NISEnabled                        | Network Inspection System (exploit protection)   | True / False                  |
+| OnAccessProtectionEnabled         | Real-time file scanning                          | True / False                  |
+| ProductStatus                     | Overall health (524288 = fully healthy)          | 524288 = good                 |
+| QuickScanAge                      | Days since last quick scan                       | 0 = today                     |
+| QuickScanStartTime                | Last quick scan start time                       | DateTime                      |
+| QuickScanEndTime                  | Last quick scan end time                         | DateTime                      |
+| RealTimeProtectionEnabled         | Real-time protection active                      | True / False                  |
+| RebootRequired                    | Reboot needed for updates/remediation            | True / False                  |
+| SmartAppControlState              | Smart App Control status                         | Off / On / Evaluation        | SmartAppControlState              | Smart App Control status                         | Off / On / Evaluation         |
+
 
 ### Section 2 – Get-MpPreference (Applied Policy & Configuration)
 Purpose
 Shows every policy setting enforced on the endpoint (Intune/GPO/local) — exclusions, scan behavior, cloud protection, Controlled Folder Access, PUA blocking, tamper protection, etc.
-
 
 | Setting                                      | Description                                                  | Typical Values                              |
 |----------------------------------------------|--------------------------------------------------------------|---------------------------------------------|
@@ -72,16 +78,21 @@ Shows every policy setting enforced on the endpoint (Intune/GPO/local) — exclu
 | EnableDnsSinkhole                            | Use Microsoft malicious domain sinkhole                     | True / False                                |
 | HideExclusionsFromLocalUsers                 | Hide exclusion list from local admins                       | True / False                                |
 | DisableCpuThrottleOnIdleScans                | No CPU throttling when idle (aggressive scanning)           | True = no throttling                        |
+| DisableArchiveScanning                       | Prevent scanning inside archive files                       | True / False                                |
+| DisableRemovableDriveScanning                | Skip scanning removable drives                              | True / False                                |
+| DisableScriptScanning                        | Prevent scanning scripts                                    | True / False                                |
+| DisableRealtimeMonitoring                    | Disable real-time protection                                | True / False                                |
+| DisableIOAVProtection                        | Disable scanning of downloaded files and attachments        | True / False                                |
+| DisableBehaviorMonitoring                    | Disable behavior monitoring                                 | True / False                                |
+| DisableBlockAtFirstSeen                      | Disable blocking of suspicious files at first sight         | True / False                                |
+| DisablePrivacyMode                           | Disable privacy mode                                        | True / False                                |
+| DisableTamperProtection                      | Allow local changes to Defender settings                    | True = disabled                             |
 | ExclusionPath                                | Paths excluded from scanning                                | List                                        |
 | ExclusionProcess                             | Processes excluded from real-time scanning                  | List                                        |
 | ExclusionExtension                           | File extensions excluded                                    | List                                        |
 | ControlledFolderAccessProtectedFolders       | Extra folders protected by CFA                              | List                                        |
 | ControlledFolderAccessAllowedApplications    | Apps allowed in protected folders                           | List                                        |
-| ScanScheduleDay                              | Scheduled scan day (0 = every day)                          | 0–8                                         |
-| ScanScheduleTime                             | Preferred scan time                                         | HH:MM:SS                                    |
-| SignatureUpdateInterval                      | Definition update check interval (hours)                    | 1–24                                        |
-| UILockdown                                   | Hide Defender UI from users                                 | True / False                                |
-|
+
 
 ### Missed Detection from MDAV
 Make sure this was followed - [ Evaluate Microsoft Defender Antivirus - Microsoft Defender for Endpoint | Microsoft Learn](https://learn.microsoft.com/en-us/defender-endpoint/evaluate-microsoft-defender-antivirus)
