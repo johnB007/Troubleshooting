@@ -33,14 +33,15 @@ SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&000000
 Extract the BusId, DeviceId, and the SerialnumberId from this value:
 ```
 PrimaryId - RemovableMediaDevices
-InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&000000
-DeviceId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION<br>
+InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*
+DeviceId - DISK&VEN_SEAGATE&PROD_EXPANSION
 HardwareId - 
 FriendlyNameId - 
 BusId - USBSTOR
-SerialNumberId - 8&2E0884B1&2&000000
+SerialNumberId - 8&2E0884B1&2
 VID_PID -
 ```
+
 ### PrimaryId can be one of four values. This chart breaks down the differernce. 
 | **PrimaryId**           | **Definition**                                                                                   | **Examples**                                      | **Intune/MDE Usage Notes**                                                                 |
 |--------------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------------------|
@@ -48,20 +49,38 @@ VID_PID -
 | `CdRomDevices`          | Optical drives that read/write CD/DVD media.                                                   | Internal/external CD/DVD drives                  | Controls access to CD/DVD drives. Can block read/write or execution from optical media.   |
 | `WpdDevices`            | Windows Portable Devices that use WPD protocol for media and storage.                          | Smartphones, tablets, cameras                    | Restrict data transfer from portable devices. Often used to prevent data exfiltration.    |
 | `PrinterDevices`        | Printers connected locally to the system, typically via USB or other direct interfaces.        | USB printers, locally attached printers          | Apply policies to block non-corporate printers or enforce corporate printer usage only.
+
 ### The HardwareId, FriendlyNameId, and VID_PID can be extracted from the device manager.
 | **Device Manager Field** | **Device Control Attribute** | **Notes**                                                                 |
 |---------------------------|-----------------------------|---------------------------------------------------------------------------|
 | Hardware Ids             | HardwareId                 | Found under **Device Properties → Details → Property: Hardware Ids**.    |
 | Friendly name            | FriendlyNameId             | Found under **Device Properties → Details → Property: Friendly Name**.   |
 | Parent                   | VID_PID                    | Extract **VID_xxxx&PID_yyyy** from the **Parent** property in Device Manager. |
-### The VDI_PID must be extracted from the "Parent" value in device manager.
-<img width="768" height="147" alt="image" src="https://github.com/user-attachments/assets/918eaa8d-3f83-452b-a61f-686955746cda" />
-The VID_PID extracted here would be "DISK&VEN_SEAGATE&PROD_EXPANSION"
-### Now that we have all possible values extracted you can choose which of these you want to use as a matching identifier for the device. 
+<img width="765" height="379" alt="image" src="https://github.com/user-attachments/assets/0a369ff8-7e4a-4445-9138-d319bc864d92" />
+<img width="770" height="215" alt="image" src="https://github.com/user-attachments/assets/32075a08-d0f7-45c0-bc53-c6a11533a581" />
+<img width="779" height="212" alt="image" src="https://github.com/user-attachments/assets/9dabebee-1a38-4fec-9043-e4eb92d6dd9b" />
 
+The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 
-Now that we have all possible values extracted you can choose which of these you want to use as a matching identifier for the device. Here are all of the values for this Kingston device:
+### Now that we have all possible values extracted, you can choose which of these you want to use as a matching identifier for the device. Remove trailing 0s for SerialNumberId because it changes when the device is unplugged/replugged.
 
+| **Attribute**        | **Value**                                                                                   |
+|-----------------------|-------------------------------------------------------------------------------------------|
+| **PrimaryId**        | RemovableMediaDevices                                                                     |
+| **InstancePathId**   | SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*                                       |
+| **DeviceId**         | DISK&VEN_SEAGATE&PROD_EXPANSION                                                           |
+| **HardwareId**       | SCSI\DiskSeagate_Expansion______0707                                                      |
+| **FriendlyNameId**   | Seagate Expansion SCSI Disk Device                                                        |
+| **BusId**            | SCSI                                                                                       |
+| **SerialNumberId**   | 8&2E0884B1&2                                                                               |
+| **VID_PID**          | VID_0BC2&PID_231A                                                                         |
+
+### These represent all the identifiers you can use to match devices in your Device Control policy.
+
+One important note: the final numeric segment in the InstancePathId corresponds to the USB port number, which may change when the device is disconnected and reconnected. To handle this variability, it’s best to use a wildcard for that portion of the value.
+```
+Intune InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*
+```
 
 ### To investigate device control issue, you need the MDE Analyzer logs. reproduce the issue during the capture (Obtain the scanner and attempt to use it/plug it in during the capture).
 
@@ -79,6 +98,3 @@ DeviceEvents
 | where AdditionalFields contains "USBSTOR"
 | project Timestamp, DeviceName, InitiatingProcessAccountName, AdditionalFields
 ```
-
-<img width="1210" height="1722" alt="image" src="https://github.com/user-attachments/assets/46981af3-bfed-49a2-9246-96a087b26151" />
-<img width="1611" height="509" alt="image" src="https://github.com/user-attachments/assets/da0ffb53-e083-4f44-a679-7f095604ad20" />
