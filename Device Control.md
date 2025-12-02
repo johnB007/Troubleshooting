@@ -1,47 +1,78 @@
 ### Troubleshooting Device Control Issues
 
-
 Device Installation Restrictions (DIR): These are Windows policies that control whether certain devices or drivers can be installed on a system. When DIR is enabled, it enforces restrictions such as:
 
-Blocking installation of devices that are not explicitly allowed.
-Preventing installation of drivers from untrusted sources.
-Applying rules based on device IDs, classes, or setup classes.
+1. Blocking installation of devices that are not explicitly allowed.    
+2. Preventing installation of drivers from untrusted sources.    
+3. Applying rules based on device IDs, classes, or setup classes.    
 
-Even when using Intune Endpoint Security blade, Device Control policies only apply to removable storage classes (USB drives, WPD devices, CD/DVD, printers).
+Even when using Intune Endpoint Security blade, Device Control policies only apply to removable storage classes (USB drives, WPD devices, CD/DVD, printers). Device control requires MDAV platform version 4.18.2103.3 or later (ideally the latest). Check the version with Get-MpComputerStatus in PowerShell. An E3 or E5 license is also needed: E3 is verified via Intune, and for GPO deployment, E5 ensures the device is onboarded to MDE.
 
-Devices that do not expose storage volumes IE: “Acme scanners without storage” cannot be controlled by MDE Device Control.
-
+### Devices that do not expose storage volumes IE: “Acme scanners without storage” cannot be controlled by MDE Device Control.
 For these devices, you must use Device Installation Restrictions (Intune or GPO) to block or allow based on Hardware IDs or Instance IDs.
-
 Navigate to: Endpoint Security > Device Control > Device Installation Restrictions. 
 
-Add Hardware IDs or Instance IDs from Device Manager or via PowerShell:
+### Add Hardware IDs or Instance IDs from Device Manager or via PowerShell:
 
 ```PS
 Get-PnpDevice | Select InstanceId
 ```
-Enable layered evaluation in Intune for Allow/Prevent rules to ensure exclusions are honored correctly.
- 
+### Enable layered evaluation in Intune for Allow/Prevent rules to ensure exclusions are honored correctly. 
 You can run the following commands on an affected device to show whether DIR is enabled:
-
+```PS
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions /s
-
 reg query HKLM\SYSTEM\DriverDatabase\Policies\Restrictions /s
+```
+### Getting Removal Device Information
+The "DescriptorIdList" property specifies the attributes used to identify a USB removable storage device. Start by retrieving the "DeviceInstancePath" from Windows Device Manager: connect the device to a test machine, open Device Manager, expand Disk Drives, and find the device. Then, under the Details tab, select the Device instance path property.
+<img width="1373" height="1110" alt="image" src="https://github.com/user-attachments/assets/83de9b1c-dfa5-4f54-b852-11bbc4654338" />
 
-What we’ll need going forward in order to investigate device control are the MDE Analyzer logs.
+Copy this value as it will be used to derive the BusId, DeviceId, and the SerialNumberId attribute values. This is value from the device manager:
+SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&000000
+<img width="1909" height="173" alt="image" src="https://github.com/user-attachments/assets/c01a8cd6-3761-4aa2-bcd5-4a1e14d95acc" />
+Extract the BusId, DeviceId, and the SerialnumberId from this value:
+```
+PrimaryId - RemovableMediaDevices
+InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&000000
+DeviceId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION<br>
+HardwareId - 
+FriendlyNameId - 
+BusId - USBSTOR
+SerialNumberId - 8&2E0884B1&2&000000
+VID_PID -
+```
+### PrimaryId can be one of four values. This chart breaks down the differernce. 
+| **PrimaryId**           | **Definition**                                                                                   | **Examples**                                      | **Intune/MDE Usage Notes**                                                                 |
+|--------------------------|-------------------------------------------------------------------------------------------------|---------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `RemovableMediaDevices` | Removable storage media such as portable drives and flash storage.                             | USB flash drives, external HDDs, SD cards        | Used to apply allow/deny policies for removable storage. Combine with BusId/DeviceId for granular control. |
+| `CdRomDevices`          | Optical drives that read/write CD/DVD media.                                                   | Internal/external CD/DVD drives                  | Controls access to CD/DVD drives. Can block read/write or execution from optical media.   |
+| `WpdDevices`            | Windows Portable Devices that use WPD protocol for media and storage.                          | Smartphones, tablets, cameras                    | Restrict data transfer from portable devices. Often used to prevent data exfiltration.    |
+| `PrinterDevices`        | Printers connected locally to the system, typically via USB or other direct interfaces.        | USB printers, locally attached printers          | Apply policies to block non-corporate printers or enforce corporate printer usage only.
+### The HardwareId, FriendlyNameId, and VID_PID can be extracted from the device manager.
+| **Device Manager Field** | **Device Control Attribute** | **Notes**                                                                 |
+|---------------------------|-----------------------------|---------------------------------------------------------------------------|
+| Hardware Ids             | HardwareId                 | Found under **Device Properties → Details → Property: Hardware Ids**.    |
+| Friendly name            | FriendlyNameId             | Found under **Device Properties → Details → Property: Friendly Name**.   |
+| Parent                   | VID_PID                    | Extract **VID_xxxx&PID_yyyy** from the **Parent** property in Device Manager. |
+### The VDI_PID must be extracted from the "Parent" value in device manager.
+<img width="768" height="147" alt="image" src="https://github.com/user-attachments/assets/918eaa8d-3f83-452b-a61f-686955746cda" />
+The VID_PID extracted here would be "DISK&VEN_SEAGATE&PROD_EXPANSION"
+### Now that we have all possible values extracted you can choose which of these you want to use as a matching identifier for the device. 
 
- 1) Supply MDEA logs but reproduce the issue during the capture (Obtain the scanner and attempt to use it/plug it in during the capture)
 
-1. Download the Client Analyzer from: https://aka.ms/Betamdeanalyzer
+Now that we have all possible values extracted you can choose which of these you want to use as a matching identifier for the device. Here are all of the values for this Kingston device:
+
+
+### To investigate device control issue, you need the MDE Analyzer logs. reproduce the issue during the capture (Obtain the scanner and attempt to use it/plug it in during the capture).
+
+1. Download the Client Analyzer from: https://aka.ms/Betamdeanalyzer.
 2. Extract it to any folder on your computer.
-3. Open an administrator PowerShell (Will not work with PowerShell ISE).
-4. Change directories to the same location you extracted the folder contents to.
-5. Run .\MDEClientAnalyzer.cmd -c -a -v
-6. Run the trace for 3 - 5 minutes (reproduce the problem during this time if one is occurring)
-7. Upload the results.zip
-
- 2) Review Advanced Hunting and confirm whether you see Device control blocking this SID or device. Example:
-
+3. Open an administrator PowerShell (Will not work with PowerShell ISE).           
+4. Change directories to the same location you extracted the folder contents to.            
+5. Run .\MDEClientAnalyzer.cmd -c -a -v        
+6. Run the trace for 3 - 5 minutes (reproduce the problem during this time if one is occurring).              
+7. Download/Upload the results.zip to support.          
+8. Review AH and confirm whether you see Device control blocking the SID or device. Example:
 ```kql
 DeviceEvents
 | where ActionType == "DeviceControlBlocked"
