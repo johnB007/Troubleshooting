@@ -6,18 +6,17 @@ Device Installation Restrictions (DIR): These are Windows policies that control 
 2. Preventing installation of drivers from untrusted sources.    
 3. Applying rules based on device IDs, classes, or setup classes.    
 
-Even when using Intune Endpoint Security blade, Device Control policies only apply to removable storage classes (USB drives, WPD devices, CD/DVD, printers). Device control requires MDAV platform version 4.18.2103.3 or later (ideally the latest). Check the version with Get-MpComputerStatus in PowerShell. An E3 or E5 license is also needed: E3 is verified via Intune, and for GPO deployment, E5 ensures the device is onboarded to MDE.
+Even when using Intune Endpoint Security blade, Device Control policies only apply to removable storage classes (USB drives, WPD devices, CD/DVD, printers). Device control requires MDAV platform version 4.18.2103.3 or later (ideally the latest). Check the version with Get-MpComputerStatus in PowerShell. An MDE Plan 1 or Plan 2 license is required (included in Microsoft 365 E3/E5); verify via Intune compliance reporting.
 
 ### Devices that do not expose storage volumes IE: “Acme scanners without storage” cannot be controlled by MDE Device Control.
-For these devices, you must use Device Installation Restrictions (Intune or GPO) to block or allow based on Hardware IDs or Instance IDs.
-Navigate to: Endpoint Security > Device Control > Device Installation Restrictions. 
+Navigate to: Endpoint Security > Attack Surface Reduction > Device Contrtol. 
 
 ### Add Hardware IDs or Instance IDs from Device Manager or via PowerShell:
 
 ```PS
 Get-PnpDevice | Select InstanceId
 ```
-### Enable layered evaluation in Intune for Allow/Prevent rules to ensure exclusions are honored correctly. 
+### Configure rule evaluation in Intune (via included/excluded groups) to ensure allow/deny rules and exclusions are honored correctly 
 You can run the following commands on an affected device to show whether DIR is enabled:
 ```PS
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions /s
@@ -37,7 +36,7 @@ InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*
 DeviceId - DISK&VEN_SEAGATE&PROD_EXPANSION
 HardwareId - 
 FriendlyNameId - 
-BusId - USBSTOR
+BusId - SCSI
 SerialNumberId - 8&2E0884B1&2
 VID_PID -
 ```
@@ -77,7 +76,7 @@ The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 
 ### These represent all the identifiers you can use to match devices in your Device Control policy.
 
-One important note: the final numeric segment in the InstancePathId corresponds to the USB port number, which may change when the device is disconnected and reconnected. To handle this variability, it’s best to use a wildcard for that portion of the value.
+One important note: The final numeric segment in InstancePathId often corresponds to the USB port, which may change on reconnect—use a wildcard (*) to handle this.
 ```
 Intune InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*
 ```
