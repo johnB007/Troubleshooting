@@ -24,7 +24,8 @@ reg query HKLM\SYSTEM\DriverDatabase\Policies\Restrictions /s
 ```
 ### Getting Removal Device Information
 The "DescriptorIdList" property specifies the attributes used to identify a USB removable storage device. Start by retrieving the "DeviceInstancePath" from Windows Device Manager: connect the device to a test machine, open Device Manager, expand Disk Drives, and find the device. Then, under the Details tab, select the Device instance path property.
-<img width="1373" height="1110" alt="image" src="https://github.com/user-attachments/assets/83de9b1c-dfa5-4f54-b852-11bbc4654338" />
+<img width="2218" height="1147" alt="image" src="https://github.com/user-attachments/assets/5215a337-fce9-4d27-b685-b78ee155d9b4" />
+
 
 Copy this value as it will be used to derive the BusId, DeviceId, and the SerialNumberId attribute values. This is value from the device manager:
 SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&000000
