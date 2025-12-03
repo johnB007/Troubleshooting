@@ -98,3 +98,13 @@ DeviceEvents
 | where AdditionalFields contains "USBSTOR"
 | project Timestamp, DeviceName, InitiatingProcessAccountName, AdditionalFields
 ```
+
+```kql
+DeviceEvents
+| where ActionType == "RemovableStoragePolicyTriggered"
+| extend parsed = parse_json(AdditionalFields)
+| extend Verdict = tostring(parsed.RemovableStoragePolicyVerdict)
+| where Verdict == "Block"
+| where tostring(parsed.BusType) contains "USBSTOR"
+| project Timestamp, DeviceName, InitiatingProcessAccountName, Verdict, parsed.BusType, parsed.DeviceId
+```
