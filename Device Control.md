@@ -62,25 +62,25 @@ VID_PID -
 
 The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 
-### Now that we have all possible values extracted, you can choose which of these you want to use as a matching identifier for the device. Remove trailing 0s for SerialNumberId because it changes when the device is unplugged/replugged.
+### Now that we have all possible values extracted, you can choose which of these you want to use as a matching identifier for the device. 
 
-| **Attribute**        | **Value**                                                                                   |
-|-----------------------|-------------------------------------------------------------------------------------------|
-| **PrimaryId**        | RemovableMediaDevices                                                                     |
-| **InstancePathId**   | SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*                                       |
-| **DeviceId**         | DISK&VEN_SEAGATE&PROD_EXPANSION                                                           |
-| **HardwareId**       | SCSI\DiskSeagate_Expansion______0707                                                      |
-| **FriendlyNameId**   | Seagate Expansion SCSI Disk Device                                                        |
-| **BusId**            | SCSI                                                                                       |
-| **SerialNumberId**   | 8&2E0884B1&2                                                                               |
-| **VID_PID**          | VID_0BC2&PID_231A                                                                         |
+| **Attribute**      | **Value**                                                                                  | **Notes**                                                                                       |
+|--------------------|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| **Name**           | Seagate Expansion HDD                                                                       | Any descriptive label you prefer.                                                                |
+| **PrimaryId**      | RemovableMediaDevices                                                                       | Category for removable storage.                                                                  |
+| **SerialNumberId** | 82E0884B12                                                                                | Must be alphanumeric (with optional underscores or hyphens), contain no special characters like &, and exclude trailing zeros because they can change when the device is unplugged or replugged..       |
+| **InstancePathId** | SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*                                         |  The final numeric segment in InstancePathId often corresponds to the USB port, which may change on reconnect. Use a wildcard (*) to handle this. |
+| **HardwareId**     | SCSI\DiskSeagate_Expansion_____0707                                                         | From Device Manager → Hardware Ids.                                                              |
+| **FriendlyNameId** | Seagate Expansion SCSI Disk Device                                                          | Bus‑reported device description.                                                                 |
+| **BusId**          | SCSI                                                                                        | Enter just `SCSI` (or `USB` when applicable).                                                    |
+| **VID**            | 0BC2                                                                                         | Optional—only if discovered from the **USB bridge** for this enclosure.                          |
+| **PID**            | 231A                                                                                         | Optional—only if discovered from the **USB bridge** for this enclosure.                          |
+| **VID_PID**        | *(leave blank)*                                                                              | Intune expects **separate VID/PID fields**; do not enter `VID_0BC2&PID_231A`.                   |
 
-### These represent all the identifiers you can use to match devices in your Device Control policy.
+### What it looks like in Intune
+<img width="3123" height="1744" alt="image" src="https://github.com/user-attachments/assets/ae6e07f1-c80a-40af-b6ad-f1690022e95f" />
+<img width="3240" height="1202" alt="image" src="https://github.com/user-attachments/assets/12597309-2697-4b7e-832f-e89275270806" />
 
-One important note: The final numeric segment in InstancePathId often corresponds to the USB port, which may change on reconnect—use a wildcard (*) to handle this.
-```
-Intune InstancePathId - SCSI\DISK&VEN_SEAGATE&PROD_EXPANSION\8&2E0884B1&2&*
-```
 
 ### To investigate device control issue, you need the MDE Analyzer logs. reproduce the issue during the capture (Obtain the scanner and attempt to use it/plug it in during the capture).
 
