@@ -31,11 +31,15 @@ Format-Table -AutoSize
 <img width="3140" height="598" alt="image" src="https://github.com/user-attachments/assets/c82997a0-dd68-4346-8003-89d07aea3cdb" />
 
 ### Configure rule evaluation in Intune (via included/excluded groups) to ensure allow/deny rules and exclusions are honored correctly 
-You can run the following commands on an affected device to show whether DIR is enabled:
+You can run the following commands on an affected device to show whether DIR is enabled. DenyDeviceIDs = 0x1 → The policy to block specific hardware IDs is turned on.
+DenyDeviceIDsRetroactive = 0x1 → The policy applies retroactively, meaning it will also block/remove devices that are already installed if they match the deny list.
+If these were 0x0, the restriction would be off.
 ```PS
 reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceInstall\Restrictions /s
 reg query HKLM\SYSTEM\DriverDatabase\Policies\Restrictions /s
 ```
+<img width="1514" height="176" alt="image" src="https://github.com/user-attachments/assets/edd574e1-277f-4b0d-b984-10207da55f97" />
+
 ### Getting Removal Device Information
 The "DescriptorIdList" property specifies the attributes used to identify a USB removable storage device. Start by retrieving the "DeviceInstancePath" from Windows Device Manager: connect the device to a test machine, open Device Manager, expand Disk Drives, and find the device. Then, under the Details tab, select the Device instance path property.
 <img width="2218" height="1147" alt="image" src="https://github.com/user-attachments/assets/5215a337-fce9-4d27-b685-b78ee155d9b4" />
