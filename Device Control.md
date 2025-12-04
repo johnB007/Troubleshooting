@@ -9,13 +9,27 @@ Device Installation Restrictions (DIR): These are Windows policies that control 
 Even when using Intune Endpoint Security blade, Device Control policies only apply to removable storage classes (USB drives, WPD devices, CD/DVD, printers). Device control requires MDAV platform version 4.18.2103.3 or later (ideally the latest). Check the version with Get-MpComputerStatus in PowerShell. An MDE Plan 1 or Plan 2 license is required (included in Microsoft 365 E3/E5); verify via Intune compliance reporting.
 
 ### Devices that do not expose storage volumes IE: “Acme scanners without storage” cannot be controlled by MDE Device Control.
-Navigate to: Endpoint Security > Attack Surface Reduction > Device Contrtol. 
 
-### Add Hardware IDs or Instance IDs from Device Manager or via PowerShell:
-
+### Verify Instance ID, Serial#, BusType, and Hardware ID from PowerShell.
 ```PS
-Get-PnpDevice | Select InstanceId
+Get-PnpDevice -Class DiskDrive |
+Where-Object {
+    $_.Status -eq 'OK' -and (
+        $_.InstanceId -like 'USBSTOR*' -or $_.InstanceId -like 'SCSI\DISK*'
+    ) -and $_.InstanceId -notlike '*MSFT*'
+} |
+Select-Object FriendlyName, InstanceId,
+@{Name='SerialNumber';Expression={ ($_.InstanceId -split '\\')[-1] -split '&'[0] }},
+@{Name='BusType';Expression={
+    if ($_.InstanceId -like 'USBSTOR*') { 'USB' }
+    elseif ($_.InstanceId -like 'SCSI\DISK*') { 'SCSI' }
+    else { '' }
+}},
+@{Name='HardwareID';Expression={ ($_.HardwareID -join ';') }} |
+Format-Table -AutoSize
 ```
+<img width="3140" height="598" alt="image" src="https://github.com/user-attachments/assets/c82997a0-dd68-4346-8003-89d07aea3cdb" />
+
 ### Configure rule evaluation in Intune (via included/excluded groups) to ensure allow/deny rules and exclusions are honored correctly 
 You can run the following commands on an affected device to show whether DIR is enabled:
 ```PS
