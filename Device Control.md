@@ -77,7 +77,7 @@ The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 | **PID**            | 231A                                                                                         | Optional—only if discovered from the **USB bridge** for this enclosure.                          |
 | **VID_PID**        | *(leave blank)*                                                                              | Intune expects **separate VID/PID fields**; do not enter `VID_0BC2&PID_231A`.                   |
 
-### What it looks like in Intune
+### What it looks like in Intune - Use only SerialNumberId = global uniqueness and/or InstancePathId = local instance uniqueness for fine grained allow
 <img width="3123" height="1744" alt="image" src="https://github.com/user-attachments/assets/ae6e07f1-c80a-40af-b6ad-f1690022e95f" />
 <img width="3233" height="1236" alt="image" src="https://github.com/user-attachments/assets/e98e8a96-9e44-4cd8-b95b-50b5084342b2" />
 
