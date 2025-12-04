@@ -81,11 +81,12 @@ The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 <img width="3123" height="1744" alt="image" src="https://github.com/user-attachments/assets/ae6e07f1-c80a-40af-b6ad-f1690022e95f" />
 <img width="3233" height="1236" alt="image" src="https://github.com/user-attachments/assets/e98e8a96-9e44-4cd8-b95b-50b5084342b2" />
 
-
 ### Troubleshooting with PS
 ```PS
 Get-MpComputerStatus | Select AMProductVersion, DeviceControlState, DeviceControlPoliciesLastUpdated
 ```
+<img width="1873" height="188" alt="image" src="https://github.com/user-attachments/assets/8e13b60f-ee73-43b3-9249-74ce274d4d10" />
+
 ### To investigate device control issue, you need the MDE Analyzer logs. reproduce the issue during the capture (Obtain the scanner and attempt to use it/plug it in during the capture).
 
 1. Download the Client Analyzer from: https://aka.ms/Betamdeanalyzer.
@@ -98,17 +99,29 @@ Get-MpComputerStatus | Select AMProductVersion, DeviceControlState, DeviceContro
 8. Review AH and confirm whether you see Device control blocking the SID or device. Example:
 ```kql
 DeviceEvents
-| where ActionType == "DeviceControlBlocked"
-| where AdditionalFields contains "USBSTOR"
+| where ActionType == "RemovableStoragePolicyTriggered"
+| where AdditionalFields contains "SCSI" // Or Change to "USBSTOR" 
 | project Timestamp, DeviceName, InitiatingProcessAccountName, AdditionalFields
 ```
+<img width="2939" height="1514" alt="image" src="https://github.com/user-attachments/assets/4bfeab3f-8c3c-4958-b53a-167b444587c7" />
 
+### Must Change Verdict to either "Block" or "Deny" and BusType to USBSTOR or SCSI depending on storage
 ```kql
 DeviceEvents
 | where ActionType == "RemovableStoragePolicyTriggered"
 | extend parsed = parse_json(AdditionalFields)
 | extend Verdict = tostring(parsed.RemovableStoragePolicyVerdict)
-| where Verdict == "Block"
-| where tostring(parsed.BusType) contains "USBSTOR"
+| where Verdict == "Block" // Or block
+| where tostring(parsed.BusType) contains "USBSTOR" // or SCSI
 | project Timestamp, DeviceName, InitiatingProcessAccountName, Verdict, parsed.BusType, parsed.DeviceId
 ```
+```kql
+DeviceEvents
+| where ActionType == "RemovableStoragePolicyTriggered"
+| extend parsed = parse_json(AdditionalFields)
+| extend Verdict = tostring(parsed.RemovableStoragePolicyVerdict)
+| where Verdict == "Deny"
+| where tostring(parsed.BusType) contains "SCSI"
+| project Timestamp, DeviceName, InitiatingProcessAccountName, Verdict, parsed.BusType, parsed.DeviceId
+```
+<img width="2946" height="1237" alt="image" src="https://github.com/user-attachments/assets/2964780b-0dcf-4029-ad8f-c89c43c3f6f9" />
