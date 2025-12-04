@@ -79,7 +79,8 @@ The VID_PID extracted here would be "USB\VID_0BC2&PID_231A\MSFT30NA8R4YBW"
 
 ### What it looks like in Intune
 <img width="3123" height="1744" alt="image" src="https://github.com/user-attachments/assets/ae6e07f1-c80a-40af-b6ad-f1690022e95f" />
-<img width="3240" height="1202" alt="image" src="https://github.com/user-attachments/assets/12597309-2697-4b7e-832f-e89275270806" />
+<img width="3233" height="1236" alt="image" src="https://github.com/user-attachments/assets/e98e8a96-9e44-4cd8-b95b-50b5084342b2" />
+
 
 ### Troubleshooting with PS
 ```PS
