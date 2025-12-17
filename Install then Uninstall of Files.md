@@ -15,11 +15,12 @@ Tracking whether software is still installed or has been removed.
 Investigating the context of installations (e.g., command-line arguments, initiating account).   
 
 ## KQL 
-Must place DeviceNmae in | where DeviceName == "" and at the bootom of | project DeviceName = "",
+Must place DeviceNmae in | where DeviceName == "" and at the bottom of | project DeviceName = "",
 ```KQL
+
 DeviceProcessEvents
 | where Timestamp > ago(180d)
-| where DeviceName == "xxxxxx"//Replace with DeviceName
+| where DeviceName == "xxxx" // Replace with DeviceName
 | where 
     // Direct installer files (.exe, .msi, etc.)
     FileName matches regex @"\.(exe|msi|msp|msu|appx|appxbundle|msix|msixbundle)$"
@@ -72,9 +73,11 @@ DeviceProcessEvents
         UserInstalls > 0, "USER",
         "UNKNOWN"
     )
+// >>> Only show entries where PrimaryInstaller == "USER"
+| where PrimaryInstaller == "USER"
 | project 
     LatestTimestamp, 
-    DeviceName = "xxxxxx", //Replace with DeviceName
+    DeviceName = "xxxxx", // Replace with DeviceName
     InstallerFile, 
     CurrentStatus,
     PrimaryInstaller,
@@ -91,7 +94,8 @@ DeviceProcessEvents
 
 ## Screenshots of Device
 
-<img width="2968" height="1682" alt="image" src="https://github.com/user-attachments/assets/8fd9bb12-2681-49c9-a82b-b9bf82ac6946" />
+<img width="2678" height="1512" alt="image" src="https://github.com/user-attachments/assets/e3b37ffd-0b10-488e-8bd6-a1fa244e0bea" />
+
 
 
 
