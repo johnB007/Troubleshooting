@@ -97,10 +97,11 @@ Shows every policy setting enforced on the endpoint (Intune/GPO/local) — exclu
 ### Missed Detection from MDAV
 Make sure this was followed - [ Evaluate Microsoft Defender Antivirus - Microsoft Defender for Endpoint | Microsoft Learn](https://learn.microsoft.com/en-us/defender-endpoint/evaluate-microsoft-defender-antivirus)
 ## Obtain the following logs
-Obtain the Defender AV configuration from the device used in the testing by running the following PowerShell cmdlets (Windows) or shell comamnds (Linux/MacOs) on the device and copy paste the output into a notepad file. This is the easiest, fastest, and smallest (file size) method to get this information from the customer and the .txt file can simply be emailed.
+Obtain the Defender AV configuration from the device used in the testing by running the following PowerShell cmdlets (Windows) or shell comamnds (Linux/MacOs).  Obtain only the output in a .txt file as thats the easiest, fastest, and smallest (file size) method to get this information from the customer. The following will run and then be available in the temp folder to email. 
 
 ```PS
 #Windows
+Start-Transcript -Path "C:\Temp\Defender_Output.txt"
 Get-MpPreference
 Get-MpPreference | select -expand AttackSurfaceReductionRules_Actions
 Get-MpPreference | select -expand AttackSurfaceReductionRules_Ids
@@ -109,6 +110,7 @@ Get-MpPreference | select -expand ExclusionProcess
 Get-MpPreference | select -expand ExclusionIPAddress
 Get-MpPreference | select -expand ControlledFolderAccessAllowedApplications
 Get-MpComputerStatus
+Stop-Transcript
 ​
 #Linux/MacOs
 mdatp health
