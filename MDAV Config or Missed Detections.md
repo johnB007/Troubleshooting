@@ -11,44 +11,77 @@
 
 ---
 
+
 ### Section 1 – Get-MpComputerStatus (Current Runtime Status)
 Purpose
 Displays the real-time operational state of Microsoft Defender: engine versions, signature freshness, whether real-time protection is actually running, tamper protection, last scans, etc.
-
 
 | Property                          | Description                                      | Typical Values                |
 |-----------------------------------|--------------------------------------------------|-------------------------------|
 | AMEngineVersion                   | Scanning engine version                          | e.g. 1.1.xxxxx.xxxx           |
 | AMProductVersion                  | Overall Defender build                           | e.g. 4.18.xxxxx.xxxx          |
 | AMRunningMode                     | Current mode                                     | Normal / Passive / Disabled   |
-| AMServiceEnabled                  | Service running                                  | True / False                  |
-| AntispywareEnabled                | Antispyware active                               | True / False                  |
+| AMServiceEnabled                  | Defender service running                         | True / False                  |
+| AMServiceVersion                  | Defender service version                         | e.g. 4.18.xxxxx.xxxx          |
+| AntispywareEnabled                | Antispyware component active                     | True / False                  |
 | AntispywareSignatureAge           | Days since last antispyware update               | 0 = current                   |
-| AntispywareSignatureVersion       | Current antispyware definitions                  | e.g. 1.441.xxx.0              |
+| AntispywareSignatureVersion       | Current antispyware definitions                  | e.g. 1.443.xxx.0              |
 | AntispywareSignatureLastUpdated   | Last antispyware signature update timestamp      | DateTime                      |
-| AntivirusEnabled                  | Antivirus active                                 | True / False                  |
-| AntivirusSignatureAge             | Days since last AV update                        | 0 = current                   |
-| AntivirusSignatureVersion         | Current AV definitions                           | e.g. 1.441.xxx.0              |
+| AntivirusEnabled                  | Antivirus component active                       | True / False                  |
+| AntivirusSignatureAge             | Days since last antivirus update                 | 0 = current                   |
+| AntivirusSignatureVersion         | Current antivirus definitions                    | e.g. 1.443.xxx.0              |
 | AntivirusSignatureLastUpdated     | Last antivirus signature update timestamp        | DateTime                      |
 | BehaviorMonitorEnabled            | Real-time behavior monitoring                    | True / False                  |
-| ComputerID                        | Unique device ID (masked)                        | GUID                          |
-| DefenderSignaturesOutOfDate       | Signatures outdated                              | True / False                  |
-| DeviceControlState                | USB/removable storage policy                     | Disabled / Enforced / Audit   |
-| FullScanAge                       | Days since last full scan                        | 0 = today                     |
+| ComputerID                        | Unique device identifier (masked)                | GUID                          |
+| ComputerState                     | Internal Defender state code                     | Integer                       |
+| DefenderSignaturesOutOfDate       | Signatures are outdated                          | True / False                  |
+| DeviceControlState                | Removable media / USB control state              | Enabled / Audit / Disabled    |
+| DeviceControlDefaultEnforcement   | Default enforcement when no policy matches       | DefaultAllow / Deny           |
+| DeviceControlPoliciesLastUpdated  | Last device control policy refresh               | DateTime                      |
+| FullScanAge                       | Days since last full scan                        | Integer                       |
 | FullScanStartTime                 | Last full scan start time                        | DateTime                      |
 | FullScanEndTime                   | Last full scan end time                          | DateTime                      |
-| IoavProtectionEnabled             | Scan downloads & attachments                     | True / False                  |
-| IsTamperProtected                 | Tamper Protection active                         | True / False                  |
-| IsVirtualMachine                  | Running as VM                                    | True / False                  |
-| NISEnabled                        | Network Inspection System (exploit protection)   | True / False                  |
-| OnAccessProtectionEnabled         | Real-time file scanning                          | True / False                  |
-| ProductStatus                     | Overall health (524288 = fully healthy)          | 524288 = good                 |
-| QuickScanAge                      | Days since last quick scan                       | 0 = today                     |
+| FullScanOverdue                   | Full scan overdue                                | True / False                  |
+| FullScanRequired                  | Full scan required                               | True / False                  |
+| FullScanSignatureVersion          | Signature version used for last full scan        | e.g. 1.437.xxx.0              |
+| InitializationProgress            | Service startup state                            | Status string                 |
+| IoavProtectionEnabled             | Scan downloads and attachments                   | True / False                  |
+| IsTamperProtected                 | Tamper Protection enforced                       | True / False                  |
+| TamperProtectionSource            | Source enforcing tamper protection               | Intune / GPO / Local          |
+| IsVirtualMachine                  | Device is a virtual machine                      | True / False                  |
+| NISEnabled                        | Network Inspection System enabled                | True / False                  |
+| NISEngineVersion                  | NIS engine version                               | e.g. 1.1.xxxxx.xxxx           |
+| NISSignatureAge                   | Days since last NIS update                       | 0 = current                   |
+| NISSignatureVersion               | Current NIS definitions                          | e.g. 1.443.xxx.0              |
+| NISSignatureLastUpdated           | Last NIS signature update time                   | DateTime                      |
+| OnAccessProtectionEnabled         | Real-time file system scanning                   | True / False                  |
+| ProductStatus                     | Overall Defender health code                     | 524288 = Healthy              |
+| QuickScanAge                      | Days since last quick scan                       | Integer                       |
 | QuickScanStartTime                | Last quick scan start time                       | DateTime                      |
 | QuickScanEndTime                  | Last quick scan end time                         | DateTime                      |
+| QuickScanOverdue                  | Quick scan overdue                               | True / False                  |
+| QuickScanSignatureVersion         | Signature version used for quick scan            | e.g. 1.443.xxx.0              |
 | RealTimeProtectionEnabled         | Real-time protection active                      | True / False                  |
-| RebootRequired                    | Reboot needed for updates/remediation            | True / False                  |
-| SmartAppControlState              | Smart App Control status                         | Off / On / Evaluation        | SmartAppControlState              | Smart App Control status                         | Off / On / Evaluation         |
+| RealTimeScanDirection             | RTP scan direction                               | 0=Both 1=Incoming 2=Outgoing  |
+| RebootRequired                    | Reboot required for remediation                  | True / False                  |
+| SmartAppControlState              | Smart App Control status                         | Off / On / Evaluation         |
+| SmartAppControlExpiration         | Smart App Control expiration                     | DateTime / Empty              |
+| LastFullScanSource                | Source of last full scan                         | Integer                       |
+| LastQuickScanSource               | Source of last quick scan                        | Integer                       |
+| TDTCapable                        | Intel Threat Detection capability                | True / False / N/A            |
+| TDTMode                           | Intel TDT operating mode                         | Mode / N/A                    |
+| TDTStatus                         | Intel TDT status                                 | Status / N/A                  |
+| TDTSiloType                       | Intel TDT silo type                              | Type / N/A                    |
+| TDTTelemetry                      | Intel TDT telemetry enabled                      | True / False / N/A            |
+| TroubleShootingMode               | Defender troubleshooting mode                    | Enabled / Disabled            |
+| TroubleShootingModeSource         | Source enabling troubleshooting                  | Service / Local / Intune      |
+| TroubleShootingStartTime          | Troubleshooting start time                       | DateTime / N/A                |
+| TroubleShootingEndTime            | Troubleshooting end time                         | DateTime / INFINITE           |
+| TroubleShootingExpirationLeft     | Remaining troubleshooting duration               | INFINITE / Minutes            |
+| TroubleShootingDailyMaxQuota      | Max daily troubleshooting quota (minutes)        | Integer                       |
+| TroubleShootingDailyQuotaLeft     | Remaining troubleshooting quota                  | Integer                       |
+| TroubleShootingQuotaResetTime     | Quota reset time                                 | DateTime / N/A                |
+
 
 
 ### Section 2 – Get-MpPreference (Applied Policy & Configuration)
