@@ -1,13 +1,10 @@
-## CX Wanted a way to determine when a specifc user installed and then unistalled a file by the exact time.
+### CX Wanted a way to determine when a specifc user installed and then unistalled a file by the exact time. A detection from Wave Browser was seen in the telemetry, but could not be found in MDVM.
 
-## Device Inventory Only Shows Active Installed Software and not "Point in Time or Install/Uninstalled" w/ Timestamp - The Problem Statement
+### Device Inventory Only Shows Active Installed Software and not "Point in Time or Install/Uninstalled" w/ Timestamp - The Problem Statement
 
-<img width="3164" height="1548" alt="image" src="https://github.com/user-attachments/assets/a0e6ac88-2856-4b1d-9ece-8a89a730f26c" />
+<img width="2908" height="1777" alt="image" src="https://github.com/user-attachments/assets/e093a599-f614-44a8-9144-68a98ecd2391" />
 
-## Use Case:  
-CX asked for a way of detecting a scenario where a rogue user installs, uses, and then quickly uninstalls software before MDE can update the software inventory in MDVM.
- 
-This query can also be useful for:  
+### This query can also be useful for:  
 
 Auditing software changes on a device.  
 Identifying unauthorized or automated installations (e.g., SYSTEM installs with silent flags).  
@@ -94,7 +91,124 @@ DeviceProcessEvents
 
 ## Screenshots of Device
 
-<img width="2678" height="1512" alt="image" src="https://github.com/user-attachments/assets/e3b37ffd-0b10-488e-8bd6-a1fa244e0bea" />
+<img width="2943" height="999" alt="image" src="https://github.com/user-attachments/assets/a0994524-54df-4e39-8e65-f9184e8bbe7a" />
+
+### If no installation is returned in the results, you might have to run a seperate kql for when the .exe was created or seen on the device. Place the folders in the kql. You can find this information on the vendors webpage or by installing the actual software.
+
+```
+let device = "xxxxx";//Put device name here
+let lookback = 365d;
+DeviceFileEvents
+| where Timestamp > ago(lookback)
+| where DeviceName =~ device
+| where FileName =~ "wavebrowser.exe"
+   or FolderPath has @"\WaveBrowser\"
+   or FolderPath has @"\Wave Browser\"
+| summarize arg_min(Timestamp, *)  // earliest row (proxy for install time)
+| project
+    InstallEvidenceTime = Timestamp,
+    DeviceName,
+    ActionType,
+    FileName,
+    FolderPath,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    InitiatingProcessAccountName,
+    InitiatingProcessParentFileName
+
+```
+<img width="2906" height="805" alt="image" src="https://github.com/user-attachments/assets/e78868c1-cdbf-443e-aad2-665317c092c2" />
+
+### This is a commbined kql that targets wave browser install and uninstall. You might have to run all queries until you find exaclty what you need and then fine tune as needed. 
+
+```
+
+let device = "xxxx";//Replave with device name
+let lookback = 365d;
+
+DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where DeviceName =~ device
+| where ProcessCommandLine has_any ("wavebrowser", "WaveBrowser", "Wave Browser")
+   or FileName has_any ("wavebrowser", "SWUpdater", "setup", "installer", "uninstall")
+| extend EventType = case(
+    ProcessCommandLine has_any ("uninstall","/uninstall"," uninst","/x","remove"), "UNINSTALL",
+    ProcessCommandLine has_any ("install","/i","/qn","/quiet","/passive","setup"), "INSTALL",
+    "UNKNOWN"
+)
+| where EventType != "UNKNOWN"
+| summarize arg_min(Timestamp, *) by EventType
+| project
+    EventType,
+    EventTime = Timestamp,
+    DeviceName,
+    FileName,
+    ProcessCommandLine,
+    AccountName,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    InitiatingProcessAccountName
+| order by EventTime asc
+```
+
+<img width="2920" height="1025" alt="image" src="https://github.com/user-attachments/assets/bcd1b4d4-5e6a-468a-b2ca-4d56876e3fcd" />
+
+### This kql is very noisy, but can be modified for only user installs/uninstalls and specific file names. 
+
+```
+let device = "defcon30";
+let lookback = 365d;
+DeviceProcessEvents
+| where Timestamp > ago(lookback)
+| where DeviceName =~ device
+| where AccountName != "system"
+| where AccountName != ""
+// Focus on common installers/package managers + uninstallers
+| where FileName in~ (
+    "msiexec.exe", "setup.exe", "update.exe", "installer.exe",
+    "winget.exe", "choco.exe", "chocolatey.exe",
+    "dism.exe", "wusa.exe", "appinstaller.exe", "powershell.exe", "cmd.exe"
+)
+or ProcessCommandLine has_any (
+    "msiexec", "winget install", "winget uninstall",
+    "choco install", "choco uninstall",
+    "setup.exe", "installer", "uninstall", "/uninstall", " uninst",
+    "/i", " /x", "/qn", "/quiet", "/passive", "remove"
+)
+// Classify event type more precisely (MSI / Winget / Choco / Generic)
+| extend EventType = case(
+    // MSI uninstall patterns
+    FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/x", " /x ", "uninstall"), "UNINSTALL",
+    // MSI install patterns
+    FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/i", " /i ", ".msi"), "INSTALL",
+    // Winget
+    FileName =~ "winget.exe" and ProcessCommandLine has " uninstall", "UNINSTALL",
+    FileName =~ "winget.exe" and ProcessCommandLine has " install", "INSTALL",
+    // Chocolatey
+    FileName in~ ("choco.exe","chocolatey.exe") and ProcessCommandLine has " uninstall", "UNINSTALL",
+    FileName in~ ("choco.exe","chocolatey.exe") and ProcessCommandLine has " install", "INSTALL",
+    // Generic keywords
+    ProcessCommandLine has_any ("uninstall","/uninstall"," uninst","/x","remove"), "UNINSTALL",
+    ProcessCommandLine has_any ("install","/i","/qn","/quiet","/passive","setup"), "INSTALL",
+    "UNKNOWN"
+)
+| where EventType != "UNKNOWN"
+| project
+    Timestamp,
+    EventType,
+    DeviceName,
+    FileName,
+    ProcessCommandLine,
+    AccountName,
+    InitiatingProcessFileName,
+    InitiatingProcessCommandLine,
+    InitiatingProcessAccountName
+| order by Timestamp asc
+```
+
+<img width="2808" height="940" alt="image" src="https://github.com/user-attachments/assets/cfc29d61-e46a-428d-8831-63ce03fa1de4" />
+
+
 
 
 
