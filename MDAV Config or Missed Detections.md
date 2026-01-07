@@ -59,39 +59,72 @@ Shows every policy setting enforced on the endpoint (Intune/GPO/local) — exclu
 |----------------------------------------------|--------------------------------------------------------------|---------------------------------------------|
 | EnableControlledFolderAccess                 | Controlled Folder Access (ransomware protection)            | 0=Off 1=Audit 2=Block                       |
 | EnableNetworkProtection                      | Network Protection (SmartScreen for network)                | 0=Off 1=Audit 2=Block                       |
+| AllowNetworkProtectionOnWinServer            | Allow Network Protection on Windows Server                  | True / False                                |
+| AllowNetworkProtectionDownLevel              | Allow Network Protection on down-level OS                   | True / False                                |
 | PUAProtection                                | Block Potentially Unwanted Applications                     | 0=Off 1=Audit 2=Block                       |
 | MAPSReporting                                | Telemetry level sent to Microsoft                           | 0=Off 1=Basic 2=Advanced                    |
 | SubmitSamplesConsent                         | Auto-submit suspicious samples                              | 0=Never 1=Safe 2=Always                     |
 | CloudBlockLevel                              | Cloud protection aggressiveness                             | 0=Default 2=High 4=High+ 6=ZeroTolerance    |
+| CloudExtendedTimeout                         | Max cloud verdict wait time (seconds)                      | Integer                                    |
 | PerformanceModeStatus                        | Lightweight performance mode                                | 0=Off 1=On                                  |
 | EnableLowCpuPriority                         | Lower CPU priority for scans                                | True / False                                |
-| ScanAvgCPULoadFactor                         | Max CPU % during scheduled scans                            | 5–100                                       |
+| ScanAvgCPULoadFactor                         | Max CPU % used during scheduled scans                      | 5–100                                       |
 | ScanOnlyIfIdleEnabled                        | Only scan when system is idle                               | True / False                                |
 | RandomizeScheduleTaskTimes                   | Randomize scheduled scan times                              | True / False                                |
 | SchedulerRandomizationTime                   | Randomization window (hours)                                | 0–23                                        |
 | DisableCatchupFullScan                       | Prevent catch-up full scans                                 | True / False                                |
 | DisableCatchupQuickScan                      | Prevent catch-up quick scans                                | True / False                                |
 | DisableScanningNetworkFiles                  | Skip scanning network files                                 | True / False                                |
-| DisableScanningMappedNetworkDrivesForFullScan| Skip mapped drives in full scans                            | True / False                                |
-| DisableEmailScanning                         | Skip email file scanning                                    | True / False                                |
-| DisableQuicParsing                           | Disable QUIC (HTTP/3) parsing                               | True / False                                |
-| EnableDnsSinkhole                            | Use Microsoft malicious domain sinkhole                     | True / False                                |
-| HideExclusionsFromLocalUsers                 | Hide exclusion list from local admins                       | True / False                                |
-| DisableCpuThrottleOnIdleScans                | No CPU throttling when idle (aggressive scanning)           | True = no throttling                        |
+| DisableScanningMappedNetworkDrivesForFullScan| Skip mapped drives during full scans                        | True / False                                |
+| DisableEmailScanning                         | Skip scanning email content                                 | True / False                                |
 | DisableArchiveScanning                       | Prevent scanning inside archive files                       | True / False                                |
-| DisableRemovableDriveScanning                | Skip scanning removable drives                              | True / False                                |
-| DisableScriptScanning                        | Prevent scanning scripts                                    | True / False                                |
+| DisableRemovableDriveScanning                | Skip scanning removable media                               | True / False                                |
+| DisableScriptScanning                        | Disable script scanning                                     | True / False                                |
 | DisableRealtimeMonitoring                    | Disable real-time protection                                | True / False                                |
-| DisableIOAVProtection                        | Disable scanning of downloaded files and attachments        | True / False                                |
+| DisableIOAVProtection                        | Disable scanning of downloaded content                     | True / False                                |
 | DisableBehaviorMonitoring                    | Disable behavior monitoring                                 | True / False                                |
-| DisableBlockAtFirstSeen                      | Disable blocking of suspicious files at first sight         | True / False                                |
+| DisableBlockAtFirstSeen                      | Disable block-at-first-sight                                | True / False                                |
 | DisablePrivacyMode                           | Disable privacy mode                                        | True / False                                |
-| DisableTamperProtection                      | Allow local changes to Defender settings                    | True = disabled                             |
+| DisableTamperProtection                     | Allow local changes to Defender settings                    | True = Disabled                             |
+| EnableDnsSinkhole                            | Block malicious domains via Microsoft sinkhole              | True / False                                |
+| DisableDnsParsing                            | Disable DNS inspection                                      | True / False                                |
+| DisableDnsOverTcpParsing                     | Disable DNS-over-TCP inspection                              | True / False                                |
+| DisableHttpParsing                           | Disable HTTP inspection                                     | True / False                                |
+| DisableQuicParsing                           | Disable QUIC (HTTP/3) inspection                             | True / False                                |
+| DisableSmtpParsing                           | Disable SMTP inspection                                     | True / False                                |
+| DisableFtpParsing                            | Disable FTP inspection                                      | True / False                                |
+| DisableSshParsing                            | Disable SSH inspection                                      | True / False                                |
+| DisableTlsParsing                            | Disable TLS inspection                                      | True / False                                |
+| DisableRdpParsing                            | Disable RDP inspection                                      | True / False                                |
+| DisableCpuThrottleOnIdleScans                | Remove CPU throttling when system is idle                   | True = No throttling                        |
+| HideExclusionsFromLocalUsers                 | Hide Defender exclusions from local admins                  | True / False                                |
+| AttackSurfaceReductionRules_Ids              | ASR rule GUIDs applied                                      | List                                        |
+| AttackSurfaceReductionRules_Actions          | ASR enforcement action per rule                             | 0=Disabled 1=Audit 2=Block                  |
+| AttackSurfaceReductionOnlyExclusions         | Global ASR-only exclusions                                  | List                                        |
+| AttackSurfaceReductionRules_RuleSpecificExclusions | Per-rule ASR exclusions                                | List                                        |
+| ControlledFolderAccessDefaultProtectedFolders| Default folders protected by CFA                            | List                                        |
+| ControlledFolderAccessProtectedFolders       | Additional CFA protected folders                            | List                                        |
+| ControlledFolderAccessAllowedApplications    | Applications allowed through CFA                            | List                                        |
 | ExclusionPath                                | Paths excluded from scanning                                | List                                        |
-| ExclusionProcess                             | Processes excluded from real-time scanning                  | List                                        |
+| ExclusionProcess                             | Processes excluded from scanning                            | List                                        |
 | ExclusionExtension                           | File extensions excluded                                    | List                                        |
-| ControlledFolderAccessProtectedFolders       | Extra folders protected by CFA                              | List                                        |
-| ControlledFolderAccessAllowedApplications    | Apps allowed in protected folders                           | List                                        |
+| ExclusionIpAddress                           | IP addresses excluded                                       | List                                        |
+| DefinitionUpdatesChannel                     | AV definition update channel                                | Integer                                    |
+| EngineUpdatesChannel                         | Defender engine update channel                              | Integer                                    |
+| PlatformUpdatesChannel                       | Defender platform update channel                            | Integer                                    |
+| MeteredConnectionUpdates                    | Allow updates over metered networks                        | True / False                                |
+| SignatureScheduleDay                         | Scheduled signature update day                             | 0–8                                        |
+| SignatureScheduleTime                        | Scheduled signature update time                            | HH:MM:SS                                   |
+| SignatureUpdateInterval                      | Signature update frequency (hours)                         | Integer                                    |
+| SignatureUpdateCatchupInterval               | Catch-up update interval (hours)                           | Integer                                    |
+| ScanScheduleDay                              | Scheduled scan day                                         | 0–7                                        |
+| ScanScheduleTime                             | Scheduled scan time                                        | HH:MM:SS                                   |
+| ScanScheduleQuickScanTime                   | Scheduled quick scan time                                  | HH:MM:SS                                   |
+| ScanScheduleOffset                           | Delay before scheduled scan (minutes)                     | Integer                                    |
+| QuarantinePurgeItemsAfterDelay              | Days before quarantined items are purged                  | Integer                                    |
+| ServiceHealthReportInterval                 | Service health reporting interval (minutes)              | Integer                                    |
+| UILockdown                                  | Restrict Defender UI access                                | True / False                                |
+| IntelTDTEnabled                             | Intel Threat Detection Technology                          | True / False                                |
 
 
 ### Missed Detection from MDAV
