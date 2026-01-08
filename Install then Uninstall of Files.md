@@ -156,7 +156,7 @@ DeviceProcessEvents
 ### This kql is very noisy, but can be modified for only user installs/uninstalls and specific file names. 
 
 ```
-let device = "xxxxxx";
+let device = "xxxxxxx";// Insert DeviceName
 let lookback = 365d;
 DeviceProcessEvents
 | where Timestamp > ago(lookback)
@@ -175,13 +175,15 @@ or ProcessCommandLine has_any (
     "setup.exe", "installer", "uninstall", "/uninstall", " uninst",
     "/i", " /x", "/qn", "/quiet", "/passive", "remove"
 )
+// Reinforce MSI detection if a product code is present
+| extend MsiProductCode = extract(@'(?i)\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}', 0, ProcessCommandLine)
 // Classify event type more precisely (MSI / Winget / Choco / Generic)
 | extend EventType = case(
-    // MSI uninstall patterns - software component and API of  Windows used for the installation, maintenance, and removal of software
+    // MSI uninstall patterns - software component and API of Windows used for the installation, maintenance, and removal of software
     FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/x", " /x ", "uninstall"), "UNINSTALL",
     // MSI install patterns
     FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/i", " /i ", ".msi"), "INSTALL",
-    // Winget is a free and open-source package manager 
+    // Winget is a free and open-source package manager
     FileName =~ "winget.exe" and ProcessCommandLine has " uninstall", "UNINSTALL",
     FileName =~ "winget.exe" and ProcessCommandLine has " install", "INSTALL",
     // Chocolatey is a machine-level, command-line package manager and installer for software on Windows
@@ -193,12 +195,15 @@ or ProcessCommandLine has_any (
     "UNKNOWN"
 )
 | where EventType != "UNKNOWN"
+// Capture quoted or unquoted .msi after /i or /x
+| extend InstallerFilePath = extract(@'(?i)(?:/i|/x)\s*["'']?([^\s"'']+\.msi)', 1, ProcessCommandLine)
 | project
     Timestamp,
     EventType,
     DeviceName,
     FileName,
     ProcessCommandLine,
+    InstallerFilePath,
     AccountName,
     InitiatingProcessFileName,
     InitiatingProcessCommandLine,
@@ -207,7 +212,11 @@ or ProcessCommandLine has_any (
 | order by Timestamp asc
 ```
 
-<img width="2808" height="940" alt="image" src="https://github.com/user-attachments/assets/cfc29d61-e46a-428d-8831-63ce03fa1de4" />
+<img width="3036" height="917" alt="image" src="https://github.com/user-attachments/assets/b453e5ed-c305-4c93-8aee-cac799f24732" />
+
+<img width="3059" height="1886" alt="image" src="https://github.com/user-attachments/assets/09299f3b-c8b3-44cc-a7b9-0228bfb51366" />
+
+
 
 
 
