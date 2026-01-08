@@ -161,6 +161,7 @@ let lookback = 365d;
 DeviceProcessEvents
 | where Timestamp > ago(lookback)
 | where DeviceName =~ device
+// filter that keeps only events run by real, non-system users
 | where tolower(AccountName) != "system" and AccountName != ""
 // Focus on common installers/package managers + uninstallers
 | where FileName in~ (
@@ -176,14 +177,14 @@ or ProcessCommandLine has_any (
 )
 // Classify event type more precisely (MSI / Winget / Choco / Generic)
 | extend EventType = case(
-    // MSI uninstall patterns
+    // MSI uninstall patterns - software component and API of  Windows used for the installation, maintenance, and removal of software
     FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/x", " /x ", "uninstall"), "UNINSTALL",
     // MSI install patterns
     FileName =~ "msiexec.exe" and ProcessCommandLine has_any ("/i", " /i ", ".msi"), "INSTALL",
-    // Winget
+    // Winget is a free and open-source package manager 
     FileName =~ "winget.exe" and ProcessCommandLine has " uninstall", "UNINSTALL",
     FileName =~ "winget.exe" and ProcessCommandLine has " install", "INSTALL",
-    // Chocolatey
+    // Chocolatey is a machine-level, command-line package manager and installer for software on Windows
     FileName in~ ("choco.exe","chocolatey.exe") and ProcessCommandLine has " uninstall", "UNINSTALL",
     FileName in~ ("choco.exe","chocolatey.exe") and ProcessCommandLine has " install", "INSTALL",
     // Generic keywords
@@ -201,7 +202,8 @@ or ProcessCommandLine has_any (
     AccountName,
     InitiatingProcessFileName,
     InitiatingProcessCommandLine,
-    InitiatingProcessAccountName
+    InitiatingProcessAccountName,
+    SHA256
 | order by Timestamp asc
 ```
 
