@@ -156,13 +156,12 @@ DeviceProcessEvents
 ### This kql is very noisy, but can be modified for only user installs/uninstalls and specific file names. 
 
 ```
-let device = "defcon30";
+let device = "xxxxxx";
 let lookback = 365d;
 DeviceProcessEvents
 | where Timestamp > ago(lookback)
 | where DeviceName =~ device
-| where AccountName != "system"
-| where AccountName != ""
+| where tolower(AccountName) != "system" and AccountName != ""
 // Focus on common installers/package managers + uninstallers
 | where FileName in~ (
     "msiexec.exe", "setup.exe", "update.exe", "installer.exe",
