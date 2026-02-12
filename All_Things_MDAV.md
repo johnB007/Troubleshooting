@@ -1,10 +1,10 @@
 ## Microsoft Defender Antivirus Update Components: Security Intelligence, Platform, & Engine
 
-For SOC, DFIR, and Threat Hunting teams, Microsoft Defender Antivirus (MDAV) is not just an endpoint control it is a **detection and evidence source** that directly influences alert fidelity, investigative timelines, and response outcomes. The effectiveness of MDAV hinges on the currency of its **security intelligence, engine, and platform components**, regardless of whether it is operating in active or passive mode.
+For SOC, DFIR, and threat hunting teams, Microsoft Defender Antivirus (MDAV) is not merely an endpoint control; it is a **primary detection and evidence source** that directly impacts alert fidelity, investigative timelines, and response effectiveness. The reliability of MDAV depends on the currency of its **security intelligence, engine, and platform components**, regardless of whether it is operating in active or passive mode. These components are updated through **security intelligence releases multiple times per day**, **monthly platform updates (KB4052623)**, and **monthly engine updates**, which together ensure timely threat detection, consistent telemetry, and predictable detection behavior across the environment.
 
 MDAV updates determine **what threats can be detected**, **how attacker behavior is interpreted**, and **what telemetry is generated during an incident**. Endpoints running outdated components may appear operational while silently introducing detection gaps, delayed alerts, or incomplete forensic artifacts that complicate root cause analysis and threat reconstruction.
 
-Keeping MDAV fully updated ensures consistent detections, reliable telemetry, and predictable behavior across Defender and XDR workflows — all of which are critical during high tempo incident response.
+Keeping MDAV fully updated ensures consistent detections, reliable telemetry, and predictable behavior across Defender and XDR workflows, all of which are critical during high tempo incident response.
 
 <img width="2184" height="957" alt="image" src="https://github.com/user-attachments/assets/6e115b2f-05cd-46a3-9c0f-e150b98656d9" />
 <img width="1992" height="199" alt="image" src="https://github.com/user-attachments/assets/803b17ab-3f63-42a3-86c0-4fe875df551e" />
