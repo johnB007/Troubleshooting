@@ -1,7 +1,6 @@
 ##  Question on Exluding "File Quarantine Action" by Hash Only
 
-We are encountering a false positive detection in MDAV for a file with a generic name. While MMDE allows the creation
-of custom IOCs using SHA256 file hashes, MDAV exclusions only support file path, folder, process, and extension-based exclusions—not hash-based logic. Whar are the options we have and why?
+We are seeing a false positive detection in Microsoft Defender Antivirus for a file that uses a generic name. Microsoft Defender for Endpoint supports creating custom indicators using SHA256 hashes, but Microsoft Defender Antivirus exclusions only allow path, folder, process, or file extension based exclusions, not hash based logic. What options are available for us to use.
 
 ## What the answer is
 
