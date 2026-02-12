@@ -2,7 +2,7 @@
 Update your antivirus protection, even if Microsoft Defender Antivirus is running in passive mode. You can find the lates engine, platform, and signature date in Security intelligence updates for Microsoft Defender Antivirus and other Microsoft anti-malware.
 
 <img width="2184" height="957" alt="image" src="https://github.com/user-attachments/assets/6e115b2f-05cd-46a3-9c0f-e150b98656d9" />
-
+<img width="1992" height="199" alt="image" src="https://github.com/user-attachments/assets/803b17ab-3f63-42a3-86c0-4fe875df551e" />
 
 ## Security intelligence updates
 
@@ -13,7 +13,7 @@ Microsoft Defender Antivirus uses cloud-delivered protection, also known as Micr
 
 Cloud-delivered protection is always on and requires an active connection to the internet to function. Security intelligence updates occur on a scheduled cadence which you can configure using a policy.
 
-## Product updates or Plafrom Updates
+## Product updates or Platform Updates
 
 Microsoft Defender Antivirus requires monthly updates (KB4052623) known as platform updates.
 
