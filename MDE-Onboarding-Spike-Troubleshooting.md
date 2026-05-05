@@ -46,7 +46,7 @@ Look for any row where `PctChange` is greater than 5 percent. Those are your spi
 
 ## 3. Anomaly detection. Let KQL flag the spike
 
-Uses time series decomposition to highlight outlier days automatically.
+Uses time series decomposition to highlight outlier days automatically. Advanced Hunting does not support `anomalychart`, so the result is unpacked into three series and rendered as a timechart. Days with a non zero `Anomaly` value are the flagged outliers.
 
 ```kql
 DeviceInfo
@@ -55,10 +55,13 @@ DeviceInfo
 | summarize Devices = dcount(DeviceId) by Day = bin(Timestamp, 1d)
 | make-series Devices = sum(Devices) default = 0 on Day from ago(30d) to now() step 1d
 | extend (anomalies, score, baseline) = series_decompose_anomalies(Devices, 2.0)
-| render anomalychart with(anomalycolumns=anomalies, title="Onboarded Device Spikes")
+| mv-expand Day to typeof(datetime), Devices to typeof(long), baseline to typeof(double), anomalies to typeof(int), score to typeof(double)
+| extend Anomaly = iff(anomalies != 0, Devices, long(null))
+| project Day, Devices, Baseline = baseline, Anomaly, Score = score
+| render timechart
 ```
 
-Lower the `2.0` threshold to `1.5` to flag smaller deviations.
+Lower the `2.0` threshold to `1.5` to flag smaller deviations. To see only the flagged days as a table, append `| where isnotnull(Anomaly)` before the render.
 
 ---
 
@@ -91,10 +94,10 @@ DeviceInfo
 | summarize FirstOnboarded = min(Timestamp), arg_max(Timestamp, OSPlatform, DeviceType) by DeviceId
 | summarize NewlyOnboarded = dcount(DeviceId) by Day = bin(FirstOnboarded, 1d), OSPlatform
 | order by Day asc, NewlyOnboarded desc
-| render columnchart with (kind=stacked)
+| render stackedareachart
 ```
 
-Swap `OSPlatform` for `DeviceType` to see workstation versus server versus mobile mix.
+Swap `OSPlatform` for `DeviceType` to see workstation versus server versus mobile mix. Advanced Hunting does not accept the `with (kind=stacked)` modifier, so use `stackedareachart` or `columnchart` (unstacked).
 
 ---
 
