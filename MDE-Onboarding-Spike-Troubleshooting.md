@@ -69,11 +69,14 @@ Lower the `2.0` threshold to `1.5` to flag smaller deviations. To see only the f
 
 `DeviceInfo` reports a row per device per day, so a flat onboarded count can still hide a wave of newly onboarded devices. This query isolates devices whose first onboarded day falls in each bucket.
 
+The first one to two days of the window are dropped. `min(Timestamp)` cannot tell whether a device was actually onboarded on the oldest day in the window or simply already existed and just happened to send its first row inside the window on that day. Trimming the leading edge removes that inflated bar so only real new onboardings remain.
+
 ```kql
 DeviceInfo
 | where Timestamp > ago(30d)
 | where OnboardingStatus =~ "Onboarded"
 | summarize FirstOnboarded = min(Timestamp) by DeviceId
+| where FirstOnboarded > ago(28d)   // drop the first 2 days to remove the edge artifact
 | summarize NewlyOnboarded = dcount(DeviceId) by Day = bin(FirstOnboarded, 1d)
 | order by Day asc
 | render columnchart
@@ -92,6 +95,7 @@ DeviceInfo
 | where Timestamp > ago(30d)
 | where OnboardingStatus =~ "Onboarded"
 | summarize FirstOnboarded = min(Timestamp), arg_max(Timestamp, OSPlatform, DeviceType) by DeviceId
+| where FirstOnboarded > ago(28d)
 | summarize NewlyOnboarded = dcount(DeviceId) by Day = bin(FirstOnboarded, 1d), OSPlatform
 | order by Day asc, NewlyOnboarded desc
 | render stackedareachart
@@ -110,6 +114,7 @@ DeviceInfo
 | where Timestamp > ago(30d)
 | where OnboardingStatus =~ "Onboarded"
 | summarize FirstOnboarded = min(Timestamp), arg_max(Timestamp, JoinType, AadDeviceId) by DeviceId
+| where FirstOnboarded > ago(28d)
 | summarize NewlyOnboarded = dcount(DeviceId) by Day = bin(FirstOnboarded, 1d), JoinType
 | order by Day asc, NewlyOnboarded desc
 ```
@@ -123,6 +128,7 @@ DeviceInfo
 | where Timestamp > ago(30d)
 | where OnboardingStatus =~ "Onboarded"
 | summarize FirstOnboarded = min(Timestamp), arg_max(Timestamp, OnboardingMethod) by DeviceId
+| where FirstOnboarded > ago(28d)
 | summarize NewlyOnboarded = dcount(DeviceId) by Day = bin(FirstOnboarded, 1d), OnboardingMethod
 | order by Day asc, NewlyOnboarded desc
 ```
