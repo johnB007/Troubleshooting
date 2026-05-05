@@ -181,6 +181,49 @@ Patterns to look for: shared `OnboardingMethod`, common `PublicIP` or subnet, si
 
 ---
 
+## 11. Weekend dip and saw tooth pattern
+
+If the daily trend shows a clean repeating dip every 7 days (typically Saturday and Sunday), that is not a real fluctuation in onboarded count. It is a reporting artifact.
+
+`DeviceInfo` writes a row per device only on days the device sends telemetry. Workstations that are powered off over the weekend do not appear that day, so `dcount(DeviceId) by Day` drops. Servers stay on, workstations do not, which produces the weekly saw tooth.
+
+The Defender portal smooths this by showing the current onboarded inventory (cumulative), not devices that reported on a single day.
+
+### Stable line using a rolling presence window
+
+A device counts as onboarded if it reported within the last 7 days. This matches the portal's view and removes the weekend dip.
+
+```kql
+let lookback = 7d;
+DeviceInfo
+| where Timestamp > ago(30d)
+| where OnboardingStatus =~ "Onboarded"
+| project DeviceId, Day = bin(Timestamp, 1d), MergedToDeviceId
+| where isempty(MergedToDeviceId)
+| extend WindowDay = range(Day, Day + lookback - 1d, 1d)
+| mv-expand WindowDay to typeof(datetime)
+| where WindowDay <= now()
+| summarize OnboardedDevices = dcount(DeviceId) by Day = WindowDay
+| order by Day asc
+| render timechart
+```
+
+If you want to confirm weekends are the cause, group by day of week.
+
+```kql
+DeviceInfo
+| where Timestamp > ago(30d)
+| where OnboardingStatus =~ "Onboarded"
+| summarize Devices = dcount(DeviceId) by Day = bin(Timestamp, 1d)
+| extend DayOfWeek = format_datetime(Day, "ddd")
+| summarize AvgDevices = avg(Devices) by DayOfWeek
+| order by AvgDevices desc
+```
+
+Saturday and Sunday averages noticeably below weekdays confirm the pattern is workstation reporting, not real onboarding change.
+
+---
+
 ## Triage checklist
 
 1. Run query 1. Is the spike real or just visual noise?
