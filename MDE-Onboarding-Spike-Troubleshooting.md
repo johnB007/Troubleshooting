@@ -63,6 +63,29 @@ DeviceInfo
 
 Lower the `2.0` threshold to `1.5` to flag smaller deviations. To see only the flagged days as a table, append `| where isnotnull(Anomaly)` before the render.
 
+### How to read the output columns
+
+* `Devices`. Actual onboarded count for the day.
+* `Baseline`. What the model expected the count to be after removing trend and seasonality.
+* `Anomaly`. `0` for normal days, `+1` for spikes, `-1` for dips. Only set when `abs(Score)` is at or above the threshold (2.0 by default).
+* `Score`. Normalized residual showing how far the day deviated from the baseline. Sign matters.
+
+| Score range | Meaning |
+|---|---|
+| 0 to plus or minus 1.5 | Normal. Within expected variation. |
+| plus or minus 1.5 to plus or minus 2.5 | Mild deviation. |
+| plus or minus 2.5 to plus or minus 3.5 | Significant. Worth investigating. |
+| Greater than plus or minus 3.5 | Strong outlier. |
+
+Positive scores are spikes (count higher than expected). Negative scores are dips (count lower than expected, for example weekend drops if seasonality is not modeled).
+
+To get only meaningful rows sorted by severity:
+
+```kql
+| where Anomaly != 0
+| order by abs(Score) desc
+```
+
 ---
 
 ## 4. New onboardings per day. The actual driver
