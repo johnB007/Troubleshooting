@@ -183,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nunion\n    (\n        {Table}\n        | where Timestamp between (baseStart .. baseEnd)\n        | project Timestamp\n        | summarize Baseline = count() by Day = bin(Timestamp, 1d)\n    ),\n    (\n        {Table}\n        | where Timestamp between (spikeStart .. spikeEnd)\n        | project Timestamp\n        | summarize Spike = count() by Day = bin(Timestamp, 1d)\n    )\n| summarize Baseline = sum(Baseline), Spike = sum(Spike) by Day\n| order by Day asc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseRangeStart = datetime({BaselineRange:startISO});\nlet baseRangeEnd = datetime({BaselineRange:endISO});\nlet baseDuration = baseRangeEnd - baseRangeStart;\nlet baseEnd = spikeStart;\nlet baseStart = spikeStart - baseDuration;\nunion\n    (\n        {Table}\n        | where Timestamp between (baseStart .. baseEnd)\n        | project Timestamp\n        | summarize Count = count() by Day = bin(Timestamp, 1d)\n        | extend Series = 'Baseline'\n    ),\n    (\n        {Table}\n        | where Timestamp between (spikeStart .. spikeEnd)\n        | project Timestamp\n        | summarize Count = count() by Day = bin(Timestamp, 1d)\n        | extend Series = 'Spike'\n    )\n| project Day, Series, Count\n| order by Day asc, Series asc",
         "size": 0,
         "title": "Daily row count: baseline vs spike",
         "timeContext": {
@@ -191,33 +191,7 @@
         },
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "timechart",
-        "chartSettings": {
-          "xAxis": "Day",
-          "yAxis": [
-            "Baseline",
-            "Spike"
-          ],
-          "seriesLabelSettings": [
-            {
-              "seriesName": "Baseline",
-              "color": "blue"
-            },
-            {
-              "seriesName": "Spike",
-              "color": "redBright"
-            }
-          ],
-          "ySettings": {
-            "numberFormatSettings": {
-              "unit": 17,
-              "options": {
-                "style": "decimal",
-                "useGrouping": true
-              }
-            }
-          }
-        }
+        "visualization": "timechart"
       },
       "name": "q-step0"
     },
