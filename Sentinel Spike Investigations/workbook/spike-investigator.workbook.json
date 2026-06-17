@@ -96,7 +96,7 @@
             "type": 2,
             "value": "none",
             "typeSettings": { "additionalResourceOptions": [] },
-            "jsonData": "[{\"value\":\"none\",\"label\":\"Not picked yet\"},{\"value\":\"patch-tuesday\",\"label\":\"Windows Patch Tuesday\"},{\"value\":\"feature-update\",\"label\":\"Windows Feature Update wave (major version uplift)\"},{\"value\":\"defender-update\",\"label\":\"Defender platform or signature update\"},{\"value\":\"mde-onboarding\",\"label\":\"MDE onboarding wave\"},{\"value\":\"intune-mecm\",\"label\":\"Intune or Configuration Manager software deployment\"},{\"value\":\"av-scan\",\"label\":\"Defender Antivirus scheduled scan window\"},{\"value\":\"backup-job\",\"label\":\"Backup agent run wave\"},{\"value\":\"arc-onboarding\",\"label\":\"Azure Arc agent rollout\"},{\"value\":\"sysmon-reconfig\",\"label\":\"Sysmon configuration push\"},{\"value\":\"dlp-rollout\",\"label\":\"Purview Endpoint DLP policy rollout\"},{\"value\":\"cert-renewal\",\"label\":\"Certificate auto enrollment wave\"},{\"value\":\"policy-refresh\",\"label\":\"Group Policy or Intune policy refresh storm\"},{\"value\":\"third-party\",\"label\":\"Third party agent reinstall\"},{\"value\":\"unknown\",\"label\":\"Nothing matched, custom closeout\"}]"
+            "jsonData": "[{\"value\":\"none\",\"label\":\"Not picked yet\"},{\"value\":\"patch-tuesday\",\"label\":\"Windows Patch Tuesday\"},{\"value\":\"feature-update\",\"label\":\"Windows Feature Update wave (major version uplift)\"},{\"value\":\"defender-update\",\"label\":\"Defender platform or signature update\"},{\"value\":\"mde-onboarding\",\"label\":\"MDE onboarding wave\"},{\"value\":\"intune-mecm\",\"label\":\"Intune or Configuration Manager software deployment\"},{\"value\":\"av-scan\",\"label\":\"Defender Antivirus scheduled scan window\"},{\"value\":\"backup-job\",\"label\":\"Backup agent run wave\"},{\"value\":\"arc-onboarding\",\"label\":\"Azure Arc agent rollout\"},{\"value\":\"sysmon-reconfig\",\"label\":\"Sysmon configuration push\"},{\"value\":\"dlp-rollout\",\"label\":\"Purview Endpoint DLP policy rollout\"},{\"value\":\"cert-renewal\",\"label\":\"Certificate auto enrollment wave\"},{\"value\":\"policy-refresh\",\"label\":\"Group Policy or Intune policy refresh storm\"},{\"value\":\"third-party\",\"label\":\"Third party agent or scanner activity\"},{\"value\":\"vuln-scan\",\"label\":\"Vulnerability scanner sweep\"},{\"value\":\"discovery-sweep\",\"label\":\"Asset discovery or NAC sweep\"},{\"value\":\"rmm-script\",\"label\":\"Remote management tool scheduled script wave\"},{\"value\":\"browser-update\",\"label\":\"Browser enterprise update wave\"},{\"value\":\"mdi-sensor\",\"label\":\"MDI sensor deployment\"},{\"value\":\"dr-test\",\"label\":\"Disaster recovery or failover test\"},{\"value\":\"dcr-change\",\"label\":\"Data Collection Rule or AMA change\"},{\"value\":\"forwarder-dup\",\"label\":\"Duplicate ingestion from a forwarder\"},{\"value\":\"unknown\",\"label\":\"Nothing matched, custom closeout\"}]"
           }
         ],
         "style": "pills",
@@ -294,7 +294,7 @@
     {
       "type": 1,
       "content": {
-        "json": "> Spike is the installation of vendor X on device group Y. The new baseline is expected. If the volume is excessive, propose a transform filter scoped to the named vendor binaries."
+        "json": "> Spike tracks a third party endpoint agent (endpoint detection, asset discovery, vulnerability scanner, network access control, or remote management tool) generating high volume process and network events on the named device groups. Activity is expected for that class of tool. If the new baseline is excessive, propose a transform filter scoped to the named parent binary identified in Step 3."
       },
       "name": "f-thirdparty",
       "conditionalVisibility": {
@@ -409,6 +409,102 @@
         "parameterName": "Fingerprint",
         "comparison": "isEqualTo",
         "value": "policy-refresh"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches a scheduled vulnerability scan from the named scanner appliance subnet against the fleet. Activity is concentrated on process, network, and logon events and ends when the scan window closes. No transform changes are required unless the scan cadence is increasing."
+      },
+      "name": "f-vulnscan",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "vuln-scan"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike is a steady stream of network and discovery activity from an asset inventory or network access control tool. Volume is proportional to fleet size, not bursty. If the new baseline is excessive, scope a transform filter to traffic originating from the named scanner appliance addresses."
+      },
+      "name": "f-discoverysweep",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "discovery-sweep"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike tracks a scheduled action pushed across the fleet by the remote management tool. Activity is concentrated on the management tool parent process named in Step 3 and is short lived. Volume returns to baseline once the run window ends."
+      },
+      "name": "f-rmmscript",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "rmm-script"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches a browser enterprise update wave for Edge, Chrome, or Firefox across the named device groups. Activity is concentrated on update helper and setup binaries and is short lived. No transform changes are required."
+      },
+      "name": "f-browserupdate",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "browser-update"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike tracks Microsoft Defender for Identity sensor installation on the named domain controllers. Activity is concentrated on service install and process events on those hosts and returns to baseline once all sensors are deployed."
+      },
+      "name": "f-mdisensor",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "mdi-sensor"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike is duplicate telemetry generated during a planned disaster recovery or failover test where the primary and secondary sites are both shipping logs. Volume returns to baseline at the end of the test window. No transform changes are required."
+      },
+      "name": "f-drtest",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "dr-test"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike is caused by a Data Collection Rule edit or Azure Monitor Agent reconfiguration that added new event sources or removed a filter. Confirm against the workspace change log before any transform. If the new sources are not required, revert the rule change instead of adding a transform."
+      },
+      "name": "f-dcrchange",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "dcr-change"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike is the same data being ingested twice (overlapping Data Collection Rules, both legacy MMA and newer AMA running, or a syslog forwarder fanning out). Fix at the collection layer by removing the duplicate path. Do not add a transform filter, that will hide the real volume, not stop it."
+      },
+      "name": "f-forwarderdup",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "forwarder-dup"
       }
     },
     {
