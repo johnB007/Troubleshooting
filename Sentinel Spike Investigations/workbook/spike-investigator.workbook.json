@@ -155,7 +155,14 @@
         "size": 0,
         "title": "ActionType: spike per day vs baseline per day",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            { "columnMatch": "SpikePerDay", "formatter": 4, "formatOptions": { "palette": "red" } },
+            { "columnMatch": "Delta", "formatter": 4, "formatOptions": { "palette": "red" } },
+            { "columnMatch": "Ratio", "formatter": 4, "formatOptions": { "palette": "redBright" } }
+          ]
+        }
       },
       "name": "q-step2"
     },
@@ -187,7 +194,13 @@
         "size": 0,
         "title": "Top process pairs above threshold",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            { "columnMatch": "Spike", "formatter": 4, "formatOptions": { "palette": "red" } },
+            { "columnMatch": "Delta", "formatter": 4, "formatOptions": { "palette": "red" } }
+          ]
+        }
       },
       "name": "q-step3"
     },
