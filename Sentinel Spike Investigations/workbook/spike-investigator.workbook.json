@@ -91,7 +91,7 @@
             "type": 2,
             "value": "none",
             "typeSettings": { "additionalResourceOptions": [] },
-            "jsonData": "[{\"value\":\"none\",\"label\":\"Not picked yet\"},{\"value\":\"patch-tuesday\",\"label\":\"Windows Patch Tuesday\"},{\"value\":\"defender-update\",\"label\":\"Defender platform or signature update\"},{\"value\":\"mde-onboarding\",\"label\":\"MDE onboarding wave\"},{\"value\":\"third-party\",\"label\":\"Third party agent reinstall\"},{\"value\":\"unknown\",\"label\":\"Nothing matched, custom closeout\"}]"
+            "jsonData": "[{\"value\":\"none\",\"label\":\"Not picked yet\"},{\"value\":\"patch-tuesday\",\"label\":\"Windows Patch Tuesday\"},{\"value\":\"feature-update\",\"label\":\"Windows Feature Update wave (major version uplift)\"},{\"value\":\"defender-update\",\"label\":\"Defender platform or signature update\"},{\"value\":\"mde-onboarding\",\"label\":\"MDE onboarding wave\"},{\"value\":\"intune-mecm\",\"label\":\"Intune or Configuration Manager software deployment\"},{\"value\":\"av-scan\",\"label\":\"Defender Antivirus scheduled scan window\"},{\"value\":\"backup-job\",\"label\":\"Backup agent run wave\"},{\"value\":\"arc-onboarding\",\"label\":\"Azure Arc agent rollout\"},{\"value\":\"sysmon-reconfig\",\"label\":\"Sysmon configuration push\"},{\"value\":\"dlp-rollout\",\"label\":\"Purview Endpoint DLP policy rollout\"},{\"value\":\"cert-renewal\",\"label\":\"Certificate auto enrollment wave\"},{\"value\":\"policy-refresh\",\"label\":\"Group Policy or Intune policy refresh storm\"},{\"value\":\"third-party\",\"label\":\"Third party agent reinstall\"},{\"value\":\"unknown\",\"label\":\"Nothing matched, custom closeout\"}]"
           }
         ],
         "style": "pills",
@@ -283,6 +283,114 @@
         "parameterName": "Fingerprint",
         "comparison": "isEqualTo",
         "value": "third-party"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike aligns with a Windows feature update (major version uplift) rolling through the named device groups. Activity is concentrated on `setuphost.exe` and `setupplatform.exe` and will subside within the rollout window. No transform changes are required."
+      },
+      "name": "f-featureupdate",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "feature-update"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike tracks an Intune or Configuration Manager software deployment wave for the named app. Volume returns to baseline once the deployment completes. If the deployed app keeps generating events at a new baseline, propose a transform filter scoped to the named binary."
+      },
+      "name": "f-intunemecm",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "intune-mecm"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches the scheduled Microsoft Defender Antivirus scan window for the fleet. Activity is concentrated on `MsMpEng.exe` and is short lived. No transform changes are required."
+      },
+      "name": "f-avscan",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "av-scan"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike aligns with the scheduled backup job for the named device groups. Activity tracks volume snapshot creation by the backup agent. No transform changes are required."
+      },
+      "name": "f-backup",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "backup-job"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike tracks the Azure Arc agent rollout for the named server fleet. Volume will plateau once all servers are connected. No transform changes are required."
+      },
+      "name": "f-arc",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "arc-onboarding"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches a Sysmon configuration push to the named device groups. If volume remains elevated after the push completes, review the new Sysmon config for rules that generate more events than required."
+      },
+      "name": "f-sysmon",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "sysmon-reconfig"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches the rollout of a Microsoft Purview Endpoint DLP policy. Volume returns to a new baseline once the policy reaches all endpoints. If the policy is generating more events than required, scope the policy to a smaller location set."
+      },
+      "name": "f-dlp",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "dlp-rollout"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches a certificate auto enrollment wave from the Enterprise Certificate Authority. Activity is concentrated on `certutil.exe` and `certreq.exe`. Volume returns to baseline once enrollment completes."
+      },
+      "name": "f-cert",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "cert-renewal"
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "> Spike matches a Group Policy or Intune policy refresh storm following a published policy change. Activity is short lived and returns to baseline within hours. No transform changes are required."
+      },
+      "name": "f-policy",
+      "conditionalVisibility": {
+        "parameterName": "Fingerprint",
+        "comparison": "isEqualTo",
+        "value": "policy-refresh"
       }
     },
     {
