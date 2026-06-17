@@ -314,19 +314,19 @@
                   {
                     "operator": ">",
                     "thresholdValue": "0",
-                    "representation": "redBright",
+                    "representation": "Failed",
                     "text": "{0}{1}"
                   },
                   {
                     "operator": "<",
                     "thresholdValue": "0",
-                    "representation": "green",
+                    "representation": "Success",
                     "text": "{0}{1}"
                   },
                   {
                     "operator": "Default",
                     "thresholdValue": null,
-                    "representation": "gray",
+                    "representation": "unknown",
                     "text": "{0}{1}"
                   }
                 ]
@@ -387,13 +387,19 @@
                   {
                     "operator": "==",
                     "thresholdValue": "true",
-                    "representation": "green",
+                    "representation": "Success",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "false",
+                    "representation": "Failed",
                     "text": "{0}{1}"
                   },
                   {
                     "operator": "Default",
                     "thresholdValue": null,
-                    "representation": "redBright",
+                    "representation": "unknown",
                     "text": "{0}{1}"
                   }
                 ],
@@ -465,19 +471,19 @@
                   {
                     "operator": ">",
                     "thresholdValue": "0",
-                    "representation": "redBright",
+                    "representation": "Failed",
                     "text": "{0}{1}"
                   },
                   {
                     "operator": "<",
                     "thresholdValue": "0",
-                    "representation": "green",
+                    "representation": "Success",
                     "text": "{0}{1}"
                   },
                   {
                     "operator": "Default",
                     "thresholdValue": null,
-                    "representation": "gray",
+                    "representation": "unknown",
                     "text": "{0}{1}"
                   }
                 ],
