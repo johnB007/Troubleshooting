@@ -172,8 +172,7 @@ caused the volume. For Windows servicing this looks like
 a third party agent it looks like the agent service spawning its
 worker process.
 
-**What you do next**: write your closeout. Use [EXAMPLE.md](EXAMPLE.md)
-as a template.
+**What you do next**: write your closeout using the structure below.
 
 ## What "done" looks like
 
@@ -186,6 +185,3 @@ A closeout has three parts:
    names so a reviewer can rerun the queries.
 3. **Brief language**: a short paragraph written for leadership.
    Plain English, no KQL.
-
-See [EXAMPLE.md](EXAMPLE.md) for a worked closeout that follows this
-structure.

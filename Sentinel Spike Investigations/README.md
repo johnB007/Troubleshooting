@@ -5,17 +5,12 @@ in Microsoft Sentinel and Defender XDR. Seven numbered KQL files plus
 this playbook walk you from the first alert to a closeout you can paste
 into a brief.
 
-Built after the 6/15/2026 DeviceFileEvents Patch Tuesday spike took
-three days to root cause. The goal of this folder is that the next
-spike takes under two hours.
-
 ## What is in this folder
 
 | File | Purpose |
 |---|---|
 | [PLAYBOOK.md](PLAYBOOK.md) | The step by step procedure. Open this first when a spike fires. |
 | [FINGERPRINTS.md](FINGERPRINTS.md) | One page quick reference of known spike patterns. Match the top of your spike vs baseline output against this list and you may be done. |
-| [EXAMPLE.md](EXAMPLE.md) | Walkthrough of the June 2026 Patch Tuesday spike from first signal to brief language. Shows what good output looks like. |
 | [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable DataType by daily GB delta. Names the table. |
 | [01_when_spiked_timechart.kql](01_when_spiked_timechart.kql) | Hourly timechart for the chosen table over the spike plus 7 days of baseline. |
 | [02_top_actiontypes.kql](02_top_actiontypes.kql) | For tables that have ActionType (DeviceEvents, DeviceFileEvents, etc.), ranks ActionType during the spike. |
@@ -35,8 +30,8 @@ If you are reading this during a live spike, do this:
    If the top binaries match one of the known patterns, jump to the
    closeout language in that row and you are done.
 4. If nothing matches, finish queries 04, 05, and 06 to confirm root
-   cause, then write your own closeout using [EXAMPLE.md](EXAMPLE.md)
-   as a template.
+   cause, then write your own closeout following the structure in the
+   playbook.
 
 ## Prerequisites
 
