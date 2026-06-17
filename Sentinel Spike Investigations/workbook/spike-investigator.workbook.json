@@ -51,7 +51,7 @@
             "id": "p-baseline",
             "version": "KqlParameterItem/1.0",
             "name": "BaselineRange",
-            "label": "Baseline window (used by Step 2 and Step 3)",
+            "label": "Baseline duration (auto-anchored before the spike)",
             "type": 4,
             "isRequired": true,
             "value": {
@@ -103,7 +103,7 @@
     {
       "type": 1,
       "content": {
-        "json": "## Step 0 : Confirm the spike\n\nDaily row count for the selected table across the spike window plus the baseline window. If the spike day is not visually obvious, stop here, the rest of the workbook will not help."
+        "json": "## Step 0 : Confirm the spike\n\nDaily row count for the selected table across the spike window plus the baseline window. The baseline is **auto-anchored to end where the spike starts**, regardless of what you pick at the top, so the two windows never overlap. If the spike day is not visually obvious, stop here, the rest of the workbook will not help."
       },
       "name": "h-step0"
     },
@@ -111,7 +111,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "{Table}\n| where Timestamp >= datetime({BaselineRange:startISO}) and Timestamp <= datetime({SpikeRange:endISO})\n| summarize Rows = count() by bin(Timestamp, 1d)\n| order by Timestamp asc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\n{Table}\n| where Timestamp >= baseStart and Timestamp <= spikeEnd\n| summarize Rows = count() by bin(Timestamp, 1d)\n| order by Timestamp asc",
         "size": 0,
         "title": "Daily row count",
         "timeContext": { "durationMs": 0 },
@@ -143,7 +143,7 @@
     {
       "type": 1,
       "content": {
-        "json": "## Step 2 : ActionType spike vs baseline\n\nDaily average per ActionType in the spike window compared to the baseline window. Sort by `Delta` desc to find the ActionTypes that grew."
+        "json": "## Step 2 : ActionType spike vs baseline\n\nDaily average per ActionType in the spike window compared to the baseline window. The baseline is **auto-anchored to end where the spike starts**, so it never overlaps the spike. Sort by `Delta` desc to find the ActionTypes that grew."
       },
       "name": "h-step2"
     },
@@ -151,7 +151,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeDays = toscalar(print d = (datetime({SpikeRange:endISO}) - datetime({SpikeRange:startISO})) / 1d);\nlet baseDays = toscalar(print d = (datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO})) / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= datetime({SpikeRange:startISO}) and Timestamp <= datetime({SpikeRange:endISO})\n    | summarize SpikePerDay = count() / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= datetime({BaselineRange:startISO}) and Timestamp <= datetime({BaselineRange:endISO})\n    | summarize BasePerDay = count() / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, 0), BasePerDay = coalesce(BasePerDay, 0)\n| extend Delta = SpikePerDay - BasePerDay\n| project ActionType, BasePerDay, SpikePerDay, Delta\n| order by Delta desc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize SpikePerDay = count() / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize BasePerDay = count() / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, 0), BasePerDay = coalesce(BasePerDay, 0)\n| extend Delta = SpikePerDay - BasePerDay\n| project ActionType, BasePerDay, SpikePerDay, Delta\n| order by Delta desc",
         "size": 0,
         "title": "ActionType: spike per day vs baseline per day",
         "queryType": 0,
@@ -162,7 +162,7 @@
     {
       "type": 1,
       "content": {
-        "json": "## Step 3 : Process pairs that grew the most\n\nParent and child binary pairs with the largest jump from baseline. The `Threshold` parameter at the top filters out pairs whose `Delta` is below the number you set. Anything above the threshold is what is actually driving the spike."
+        "json": "## Step 3 : Process pairs that grew the most\n\nParent and child binary pairs with the largest jump from baseline. The baseline window is **auto-anchored to end where the spike window starts**, so it never overlaps the spike, regardless of what duration you pick at the top. The `Threshold` parameter filters out pairs whose `Delta` is below the number you set. Anything above the threshold is what is actually driving the spike."
       },
       "name": "h-step3"
     },
@@ -170,7 +170,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeDays = toscalar(print d = (datetime({SpikeRange:endISO}) - datetime({SpikeRange:startISO})) / 1d);\nlet baseDays = toscalar(print d = (datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO})) / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= datetime({SpikeRange:startISO}) and Timestamp <= datetime({SpikeRange:endISO})\n    | summarize Spike = count() / spikeDays by InitiatingProcessFileName, FileName;\nlet base =\n    {Table}\n    | where Timestamp >= datetime({BaselineRange:startISO}) and Timestamp <= datetime({BaselineRange:endISO})\n    | summarize Baseline = count() / baseDays by InitiatingProcessFileName, FileName;\nspike\n| join kind=fullouter base on InitiatingProcessFileName, FileName\n| extend InitiatingProcessFileName = coalesce(InitiatingProcessFileName, InitiatingProcessFileName1), FileName = coalesce(FileName, FileName1), Spike = coalesce(Spike, 0), Baseline = coalesce(Baseline, 0)\n| extend Delta = Spike - Baseline\n| where Delta > toint('{Threshold}')\n| project ParentFileName = InitiatingProcessFileName, FileName, Baseline, Spike, Delta\n| order by Delta desc\n| take 50",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize Spike = count() / spikeDays by InitiatingProcessFileName, FileName;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize Baseline = count() / baseDays by InitiatingProcessFileName, FileName;\nspike\n| join kind=fullouter base on InitiatingProcessFileName, FileName\n| extend InitiatingProcessFileName = coalesce(InitiatingProcessFileName, InitiatingProcessFileName1), FileName = coalesce(FileName, FileName1), Spike = coalesce(Spike, 0), Baseline = coalesce(Baseline, 0)\n| extend Delta = Spike - Baseline\n| where Delta > toint('{Threshold}')\n| project ParentFileName = InitiatingProcessFileName, FileName, Baseline, Spike, Delta\n| order by Delta desc\n| take 50",
         "size": 0,
         "title": "Top process pairs above threshold",
         "queryType": 0,
