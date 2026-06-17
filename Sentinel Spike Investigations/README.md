@@ -11,6 +11,7 @@ into a brief.
 |---|---|
 | [PLAYBOOK.md](PLAYBOOK.md) | The step by step procedure. Open this first when a spike fires. |
 | [FINGERPRINTS.md](FINGERPRINTS.md) | One page quick reference of known spike patterns. Match the top of your spike vs baseline output against this list and you may be done. |
+| [workbook/](workbook/) | Optional automated path. A single Sentinel Workbook that runs all seven steps in place, with click to drill devices and a fingerprint switcher that surfaces ready to paste closeout language. Requires the Defender XDR data connector. |
 | [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable DataType by daily GB delta. Names the table. |
 | [01_when_spiked_timechart.kql](01_when_spiked_timechart.kql) | Hourly timechart for the chosen table over the spike plus 7 days of baseline. |
 | [02_top_actiontypes.kql](02_top_actiontypes.kql) | For tables that have ActionType (DeviceEvents, DeviceFileEvents, etc.), ranks ActionType during the spike. |
@@ -32,6 +33,16 @@ If you are reading this during a live spike, do this:
 4. If nothing matches, finish queries 04, 05, and 06 to confirm root
    cause, then write your own closeout following the structure in the
    playbook.
+
+### Even faster path : the workbook
+
+If the workspace has the Defender XDR data connector enabled, import
+[workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json)
+into Sentinel : Workbooks once. After that, every spike becomes:
+set the time pickers, click the top device row in Step 4, pick the
+matching fingerprint at the bottom, paste the closeout into the
+ticket. See [workbook/README.md](workbook/README.md) for the one
+time import steps.
 
 ## Prerequisites
 
