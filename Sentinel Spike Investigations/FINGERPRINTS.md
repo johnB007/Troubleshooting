@@ -53,7 +53,6 @@ days. Less spread than Patch Tuesday.
 > through the fleet. Activity is expected and short lived. No
 > transform changes are required.
 
-
 ## MDE onboarding wave
 
 **Top rows in query 03 look like**:
