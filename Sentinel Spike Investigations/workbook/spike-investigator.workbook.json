@@ -343,48 +343,91 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseRangeStart = datetime({BaselineRange:startISO});\nlet baseRangeEnd = datetime({BaselineRange:endISO});\nlet baseDuration = baseRangeEnd - baseRangeStart;\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet threshold = toreal('{Threshold}');\nlet topParents = toscalar(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName SpikeCount = count() by InitiatingProcessFileName\n    | top 50 by SpikeCount desc\n    | summarize make_set(InitiatingProcessFileName)\n);\nlet spike = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize Spike = todouble(count()) / spikeDays, DistinctDevices = dcount(DeviceName)\n        by InitiatingProcessFileName, ChildName;\nlet base = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize Baseline = todouble(count()) / baseDays\n        by InitiatingProcessFileName, ChildName;\nlet attribution = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize Vendors = make_set(Vendor, 3), Products = make_set(Product, 3), ParentPaths = make_set(ParentPath, 3)\n        by InitiatingProcessFileName;\nspike\n| join kind=leftouter base on InitiatingProcessFileName, ChildName\n| extend Baseline = coalesce(Baseline, real(0))\n| extend Delta = Spike - Baseline\n| join kind=leftouter attribution on InitiatingProcessFileName\n| extend AboveThreshold = iff(Delta > threshold, '✓', '')\n| project\n    AboveThreshold,\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| top 50 by Delta desc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseRangeStart = datetime({BaselineRange:startISO});\nlet baseRangeEnd = datetime({BaselineRange:endISO});\nlet baseDuration = baseRangeEnd - baseRangeStart;\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet threshold = toreal('{Threshold}');\nlet topParents = toscalar(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName SpikeCount = count() by InitiatingProcessFileName\n    | top 50 by SpikeCount desc\n    | summarize make_set(InitiatingProcessFileName)\n);\nlet spike = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize Spike = todouble(count()) / spikeDays, DistinctDevices = dcount(DeviceName)\n        by InitiatingProcessFileName, ChildName;\nlet base = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize Baseline = todouble(count()) / baseDays\n        by InitiatingProcessFileName, ChildName;\nlet attribution = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize\n        Vendors = make_set_if(Vendor, isnotempty(Vendor), 3),\n        Products = make_set_if(Product, isnotempty(Product), 3),\n        ParentPaths = make_set_if(ParentPath, isnotempty(ParentPath), 3)\n        by InitiatingProcessFileName;\nspike\n| join kind=leftouter base on InitiatingProcessFileName, ChildName\n| extend Baseline = coalesce(Baseline, real(0))\n| extend Delta = Spike - Baseline\n| join kind=leftouter attribution on InitiatingProcessFileName\n| extend AboveThreshold = iff(Delta > threshold, 'true', 'false')\n| extend Vendors = iff(array_length(Vendors) == 0, dynamic(['(unknown)']), Vendors)\n| extend Products = iff(array_length(Products) == 0, dynamic(['(unknown)']), Products)\n| project\n    AboveThreshold,\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| top 50 by Delta desc",
         "size": 0,
         "title": "Top process pairs above threshold (with vendor attribution)",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "gridSettings": {
-          "formatters": [
-            {
-              "columnMatch": "AboveThreshold",
-              "formatter": 0,
-              "formatOptions": {
-                "customColumnWidthSetting": "60px"
-              }
-            },
-            {
-              "columnMatch": "Baseline",
-              "formatter": 8,
-              "formatOptions": {
-                "palette": "blue",
-                "min": 0
-              }
-            },
-            {
-              "columnMatch": "Spike",
-              "formatter": 8,
-              "formatOptions": {
-                "palette": "red",
-                "min": 0
-              }
-            },
-            {
-              "columnMatch": "Delta",
-              "formatter": 8,
-              "formatOptions": {
-                "palette": "redBright"
-              }
-            }
-          ],
+          "rowLimit": 100,
+          "filter": true,
           "sortBy": [
             {
               "itemKey": "Delta",
               "sortOrder": 2
+            }
+          ],
+          "columnSettings": [
+            {
+              "columnId": "AboveThreshold",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "110px"
+              }
+            },
+            {
+              "columnId": "Vendors",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "220px"
+              }
+            },
+            {
+              "columnId": "Products",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "220px"
+              }
+            },
+            {
+              "columnId": "ParentFileName",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "200px"
+              }
+            },
+            {
+              "columnId": "ParentPaths",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "260px"
+              }
+            },
+            {
+              "columnId": "ChildName",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "180px"
+              }
+            },
+            {
+              "columnId": "DistinctDevices",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "110px"
+              }
+            },
+            {
+              "columnId": "Baseline",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "110px"
+              }
+            },
+            {
+              "columnId": "Spike",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "110px"
+              }
+            },
+            {
+              "columnId": "Delta",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "redGreen",
+                "customColumnWidthSetting": "110px"
+              }
             }
           ]
         },
@@ -432,11 +475,87 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "{Table}\n| where Timestamp >= datetime({SpikeRange:startISO}) and Timestamp <= datetime({SpikeRange:endISO})\n| where DeviceName == '{Device}'\n| extend ChildName = column_ifexists('FileName', '')\n| extend ChildPath = column_ifexists('FolderPath', '')\n| extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n| extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n| extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n| extend CmdLine = column_ifexists('InitiatingProcessCommandLine', '')\n| extend Account = column_ifexists('InitiatingProcessAccountName', '')\n| summarize\n    Rows = count(),\n    SampleChildPath = any(ChildPath),\n    SampleCmdLine = any(CmdLine),\n    Accounts = make_set(Account, 3)\n    by InitiatingProcessFileName, ParentPath, Vendor, Product, ChildName\n| top 30 by Rows desc\n| project\n    Rows,\n    Vendor,\n    Product,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPath,\n    ChildName,\n    SampleChildPath,\n    Accounts,\n    SampleCmdLine",
+        "query": "let win = {Table}\n    | where Timestamp >= datetime({SpikeRange:startISO}) and Timestamp <= datetime({SpikeRange:endISO})\n    | where DeviceName == '{Device}'\n    | extend ChildName = column_ifexists('FileName', '')\n    | extend ChildPath = column_ifexists('FolderPath', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | extend VendorRaw = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend ProductRaw = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend FileDescRaw = column_ifexists('InitiatingProcessVersionInfoFileDescription', '')\n    | extend CmdLine = column_ifexists('InitiatingProcessCommandLine', '')\n    | extend Account = column_ifexists('InitiatingProcessAccountName', '')\n;\nlet attribution = win\n    | where isnotempty(VendorRaw) or isnotempty(ProductRaw) or isnotempty(FileDescRaw) or isnotempty(ParentPath)\n    | summarize\n        VendorAttr = take_anyif(VendorRaw, isnotempty(VendorRaw)),\n        ProductAttr = take_anyif(ProductRaw, isnotempty(ProductRaw)),\n        FileDescAttr = take_anyif(FileDescRaw, isnotempty(FileDescRaw)),\n        ParentPathAttr = take_anyif(ParentPath, isnotempty(ParentPath))\n        by InitiatingProcessFileName\n;\nwin\n| summarize\n    Rows = count(),\n    SampleChildPath = any(ChildPath),\n    SampleCmdLine = any(CmdLine),\n    Accounts = make_set_if(Account, isnotempty(Account), 3)\n    by InitiatingProcessFileName, ChildName\n| join kind=leftouter attribution on InitiatingProcessFileName\n| extend ParentLower = tolower(coalesce(ParentPathAttr, ''))\n| extend Vendor = case(\n    isnotempty(VendorAttr), VendorAttr,\n    ParentLower startswith @'c:\\windows\\system32', 'Microsoft Windows',\n    ParentLower startswith @'c:\\windows\\winsxs', 'Microsoft Windows',\n    ParentLower startswith @'c:\\windows\\softwaredistribution', 'Microsoft Windows Update',\n    ParentLower startswith @'c:\\windows\\', 'Microsoft Windows',\n    ParentLower contains 'microsoft', 'Microsoft',\n    ParentLower contains 'forescout' or ParentLower contains 'secureconnector', 'Forescout',\n    ParentLower contains 'crowdstrike', 'CrowdStrike',\n    ParentLower contains 'defender' or ParentLower contains 'mssense' or ParentLower contains 'msmpeng', 'Microsoft Defender',\n    ParentLower contains 'sentinelone', 'SentinelOne',\n    ParentLower startswith @'c:\\program files\\', tostring(split(ParentPathAttr, @'\\')[2]),\n    ParentLower startswith @'c:\\program files (x86)\\', tostring(split(ParentPathAttr, @'\\')[2]),\n    '(unknown)')\n| extend Product = case(\n    isnotempty(ProductAttr), ProductAttr,\n    isnotempty(FileDescAttr), FileDescAttr,\n    '(unknown)')\n| extend ParentPath = coalesce(ParentPathAttr, '')\n| top 30 by Rows desc\n| project\n    Rows,\n    Vendor,\n    Product,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPath,\n    ChildName,\n    SampleChildPath,\n    Accounts,\n    SampleCmdLine",
         "size": 0,
         "title": "Process tree on the selected device (with vendor attribution)",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "table",
+        "gridSettings": {
+          "rowLimit": 100,
+          "filter": true,
+          "sortBy": [
+            {
+              "itemKey": "Rows",
+              "sortOrder": 2
+            }
+          ],
+          "columnSettings": [
+            {
+              "columnId": "Rows",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "90px"
+              }
+            },
+            {
+              "columnId": "Vendor",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "180px"
+              }
+            },
+            {
+              "columnId": "Product",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "220px"
+              }
+            },
+            {
+              "columnId": "ParentFileName",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "180px"
+              }
+            },
+            {
+              "columnId": "ParentPath",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "260px"
+              }
+            },
+            {
+              "columnId": "ChildName",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "180px"
+              }
+            },
+            {
+              "columnId": "SampleChildPath",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "300px"
+              }
+            },
+            {
+              "columnId": "Accounts",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "160px"
+              }
+            },
+            {
+              "columnId": "SampleCmdLine",
+              "formatter": 1,
+              "formatOptions": {
+                "customColumnWidthSetting": "360px"
+              }
+            }
+          ]
+        }
       },
       "name": "q-step5",
       "conditionalVisibility": {
