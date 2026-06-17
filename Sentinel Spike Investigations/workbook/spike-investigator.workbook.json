@@ -183,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseRangeStart = datetime({BaselineRange:startISO});\nlet baseRangeEnd = datetime({BaselineRange:endISO});\nlet baseDuration = baseRangeEnd - baseRangeStart;\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeCounts = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | project Timestamp\n    | summarize Spike = count() by Day = bin(Timestamp, 1d);\nlet baseCounts = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | project Timestamp\n    | summarize Baseline = count() by Day = bin(Timestamp, 1d);\nrange Day from bin(baseStart, 1d) to bin(spikeEnd, 1d) step 1d\n| join kind=leftouter baseCounts on Day\n| join kind=leftouter spikeCounts on Day\n| project Day, Baseline = coalesce(Baseline, 0), Spike = coalesce(Spike, 0)\n| order by Day asc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseRangeStart = datetime({BaselineRange:startISO});\nlet baseRangeEnd = datetime({BaselineRange:endISO});\nlet baseDuration = baseRangeEnd - baseRangeStart;\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeCounts = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | project Timestamp\n    | summarize Spike = count() by Day = bin(Timestamp, 1d);\nlet baseCounts = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | project Timestamp\n    | summarize Baseline = count() by Day = bin(Timestamp, 1d);\nlet dense = range Day from bin(baseStart, 1d) to bin(spikeEnd, 1d) step 1d\n    | join kind=leftouter baseCounts on Day\n    | join kind=leftouter spikeCounts on Day\n    | project Day, Baseline = coalesce(Baseline, 0), Spike = coalesce(Spike, 0);\nunion\n    (dense | project Day, Series = 'Baseline', Count = Baseline),\n    (dense | project Day, Series = 'Spike', Count = Spike)\n| order by Day asc, Series asc",
         "size": 0,
         "title": "Daily row count: baseline vs spike",
         "timeContext": {
@@ -191,24 +191,7 @@
         },
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "timechart",
-        "chartSettings": {
-          "xAxis": "Day",
-          "yAxis": [
-            "Baseline",
-            "Spike"
-          ],
-          "seriesLabelSettings": [
-            {
-              "seriesName": "Baseline",
-              "color": "blue"
-            },
-            {
-              "seriesName": "Spike",
-              "color": "redBright"
-            }
-          ]
-        }
+        "visualization": "timechart"
       },
       "name": "q-step0"
     },
