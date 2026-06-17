@@ -183,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spike = {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize Rows = count() by Day = bin(Timestamp, 1d)\n    | extend Window = 'Spike';\nlet base = {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize Rows = count() by Day = bin(Timestamp, 1d)\n    | extend Window = 'Baseline';\nunion base, spike\n| project Day, Window, Rows\n| order by Day asc, Window asc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\n{Table}\n| where Timestamp between (baseStart .. spikeEnd)\n| summarize hint.strategy=shuffle Rows = count() by Day = bin(Timestamp, 1d)\n| extend Window = iff(Day >= bin(spikeStart, 1d), 'Spike', 'Baseline')\n| project Day, Window, Rows\n| order by Day asc",
         "size": 0,
         "title": "Daily row count: baseline vs spike",
         "timeContext": {
@@ -206,7 +206,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet total = toscalar({Table} | where Timestamp >= spikeStart and Timestamp <= spikeEnd | count);\n{Table}\n| where Timestamp >= spikeStart and Timestamp <= spikeEnd\n| extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n| extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n| summarize\n    Rows = count(),\n    DistinctDevices = dcount(DeviceName),\n    TopVendors = make_set(Vendor, 5),\n    TopProducts = make_set(Product, 5),\n    TopParents = make_set(InitiatingProcessFileName, 5)\n    by ActionType\n| extend PctOfSpike = round(100.0 * Rows / total, 2)\n| top 20 by Rows desc\n| project ActionType, Rows, PctOfSpike, DistinctDevices, TopVendors, TopProducts, TopParents",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet agg = materialize(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=ActionType\n        Rows = count(),\n        DistinctDevices = dcount(DeviceName),\n        TopVendors = make_set(Vendor, 5),\n        TopProducts = make_set(Product, 5),\n        TopParents = make_set(InitiatingProcessFileName, 5)\n        by ActionType\n);\nlet total = toscalar(agg | summarize sum(Rows));\nagg\n| extend PctOfSpike = round(100.0 * Rows / todouble(total), 2)\n| top 20 by Rows desc\n| project ActionType, Rows, PctOfSpike, DistinctDevices, TopVendors, TopProducts, TopParents",
         "size": 0,
         "title": "Top 20 ActionTypes with vendor attribution",
         "queryType": 0,
@@ -237,14 +237,77 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize SpikePerDay = todouble(count()) / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize BasePerDay = todouble(count()) / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, real(0)), BasePerDay = coalesce(BasePerDay, real(0))\n| extend Delta = SpikePerDay - BasePerDay\n| order by Delta desc\n| take 15\n| project ActionType, BasePerDay = round(BasePerDay, 0), SpikePerDay = round(SpikePerDay, 0)",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet spike = materialize(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | summarize hint.strategy=shuffle hint.shufflekey=ActionType\n        SpikePerDay = todouble(count()) / spikeDays\n        by ActionType\n);\nlet base = materialize(\n    {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | summarize hint.strategy=shuffle hint.shufflekey=ActionType\n        BasePerDay = todouble(count()) / baseDays\n        by ActionType\n);\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1)\n| extend SpikePerDay = coalesce(SpikePerDay, real(0)), BasePerDay = coalesce(BasePerDay, real(0))\n| extend Delta = SpikePerDay - BasePerDay\n| order by Delta desc\n| take 15\n| project ActionType, BasePerDay = round(BasePerDay, 0), SpikePerDay = round(SpikePerDay, 0), Delta = round(Delta, 0)",
         "size": 0,
         "title": "Top 15 ActionTypes: baseline per day vs spike per day",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "barchart"
+        "visualization": "table",
+        "chartSettings": {},
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ActionType",
+              "formatter": 0
+            },
+            {
+              "columnMatch": "BasePerDay",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "blue",
+                "min": 0
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": true,
+                  "maximumFractionDigits": 0
+                }
+              }
+            },
+            {
+              "columnMatch": "SpikePerDay",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "red",
+                "min": 0
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": true,
+                  "maximumFractionDigits": 0
+                }
+              }
+            },
+            {
+              "columnMatch": "Delta",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "redBright"
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": true,
+                  "maximumFractionDigits": 0
+                }
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "Delta",
+              "sortOrder": 2
+            }
+          ]
+        }
       },
-      "name": "q-step2-chart"
+      "name": "q-step2-chart",
+      "title": "Top 15 ActionTypes: baseline per day vs spike per day"
     },
     {
       "type": 1,
@@ -257,7 +320,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike = materialize(\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | extend ChildName = column_ifexists('FileName', '')\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize\n        Spike = todouble(count()) / spikeDays,\n        DistinctDevices = dcount(DeviceName),\n        Vendors = make_set(Vendor, 3),\n        Products = make_set(Product, 3),\n        ParentPaths = make_set(ParentPath, 3)\n        by InitiatingProcessFileName, ChildName\n    | top 500 by Spike desc\n);\nlet spikeParents = spike | distinct InitiatingProcessFileName;\nlet base = {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | where InitiatingProcessFileName in (spikeParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize Baseline = todouble(count()) / baseDays by InitiatingProcessFileName, ChildName;\nspike\n| join kind=leftouter base on InitiatingProcessFileName, ChildName\n| extend Baseline = coalesce(Baseline, real(0))\n| extend Delta = Spike - Baseline\n| where Delta > toreal('{Threshold}')\n| project\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| order by Delta desc\n| take 50",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet spike = materialize(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Spike = todouble(count()) / spikeDays,\n        DistinctDevices = dcount(DeviceName)\n        by InitiatingProcessFileName, ChildName\n    | top 200 by Spike desc\n);\nlet spikeParents = toscalar(spike | summarize make_set(InitiatingProcessFileName));\nlet base = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | where InitiatingProcessFileName in (spikeParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Baseline = todouble(count()) / baseDays\n        by InitiatingProcessFileName, ChildName;\nlet joined = materialize(\n    spike\n    | join kind=leftouter base on InitiatingProcessFileName, ChildName\n    | extend Baseline = coalesce(Baseline, real(0))\n    | extend Delta = Spike - Baseline\n    | where Delta > toreal('{Threshold}')\n);\nlet topParents = toscalar(joined | summarize make_set(InitiatingProcessFileName));\nlet attribution = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Vendors = make_set(Vendor, 3),\n        Products = make_set(Product, 3),\n        ParentPaths = make_set(ParentPath, 3)\n        by InitiatingProcessFileName;\njoined\n| join kind=leftouter attribution on InitiatingProcessFileName\n| project\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| order by Delta desc\n| take 50",
         "size": 0,
         "title": "Top process pairs above threshold (with vendor attribution)",
         "queryType": 0,
