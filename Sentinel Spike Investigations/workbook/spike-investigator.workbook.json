@@ -175,7 +175,7 @@
     {
       "type": 1,
       "content": {
-        "json": "## Step 0 : Confirm the spike\n\nOne continuous daily row count for the selected table across the prior period and the spike window, plus a flat **Normal (prior median per day)** reference. The spike portion is colored separately from the prior period so the boundary is obvious, and the reference uses the median, not the mean, so a single bad day in the prior period does not pull the bar up. If the **Spike window** segment does not stay above the **Normal** line, there is no spike, stop here.\n\n> Tip: if the prior period itself has big outliers, narrow the **SpikeRange** to the last few days. The spike is usually concentrated there."
+        "json": "## Step 0 : Confirm the spike\n\nTwo bars, same number of days each: total events in the prior period vs total in the spike window. If the right bar is not visibly taller than the left, there is no spike, stop here. A small daily trend underneath gives context only.\n\n> Demo: with **Table = DeviceFileEvents** and **SpikeRange = Last 7 days**, the spike bar should be roughly 1.7x the baseline bar."
       },
       "name": "h-step0"
     },
@@ -183,14 +183,40 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = startofday(datetime({SpikeRange:startISO}));\nlet spikeEnd = startofday(datetime({SpikeRange:endISO}));\nlet spikeDuration = spikeEnd - spikeStart;\nlet baseStart = spikeStart - spikeDuration;\nlet baseEnd = spikeStart;\nlet daily = {Table}\n    | where Timestamp >= baseStart and Timestamp < spikeEnd\n    | summarize Count = toreal(count()) by Day = bin(Timestamp, 1d);\nlet normal = toreal(toscalar(daily | where Day < spikeStart | summarize percentile(Count, 50)));\nlet line = daily | extend Series = iff(Day >= spikeStart, \"Spike window\", \"Baseline (prior period)\");\nlet ref = range Day from baseStart to spikeEnd - 1d step 1d\n    | project Day, Count = normal, Series = \"Normal (prior median per day)\";\nunion line, ref\n| order by Day asc, Series asc",
+        "query": "let spikeStart = startofday(datetime({SpikeRange:startISO}));\nlet spikeEnd = startofday(datetime({SpikeRange:endISO}));\nlet spikeDuration = spikeEnd - spikeStart;\nlet baseStart = spikeStart - spikeDuration;\nlet days = toint(spikeDuration / 1d);\n{Table}\n| where Timestamp >= baseStart and Timestamp < spikeEnd\n| summarize Count = count() by Period = iff(Timestamp >= spikeStart, strcat(\"Spike window (last \", days, \" days)\"), strcat(\"Prior \", days, \" days (baseline)\"))\n| order by Period desc",
         "size": 0,
-        "title": "Daily row count: baseline vs spike",
+        "title": "Volume comparison: spike window vs prior period (equal length)",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "timechart"
+        "visualization": "barchart",
+        "chartSettings": {
+          "createOtherGroup": 0,
+          "showLegend": true,
+          "ySettings": {
+            "numberFormatSettings": {
+              "unit": 0,
+              "options": {
+                "style": "decimal",
+                "useGrouping": true
+              }
+            }
+          }
+        }
       },
       "name": "q-step0"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let spikeStart = startofday(datetime({SpikeRange:startISO}));\nlet spikeEnd = startofday(datetime({SpikeRange:endISO}));\nlet spikeDuration = spikeEnd - spikeStart;\nlet baseStart = spikeStart - spikeDuration;\n{Table}\n| where Timestamp >= baseStart and Timestamp < spikeEnd\n| summarize Count = toreal(count()) by Day = bin(Timestamp, 1d)\n| order by Day asc",
+        "size": 0,
+        "title": "Daily trend (context)",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "linechart"
+      },
+      "name": "q-step0-trend"
     },
     {
       "type": 1,
