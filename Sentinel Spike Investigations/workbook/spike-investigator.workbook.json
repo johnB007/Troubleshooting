@@ -103,10 +103,10 @@
             "version": "KqlParameterItem/1.0",
             "name": "Threshold",
             "label": "Delta threshold (Step 3)",
-            "description": "Start at 1000. Raise it if Step 3 returns too many rows, lower it if Step 3 is empty.",
+            "description": "Marks rows in Step 3 where (Spike per day) - (Baseline per day) exceeds this value. Step 3 always returns top 50 by Delta. Raise this to make the check icon stricter, lower it to mark more rows.",
             "type": 2,
             "isRequired": true,
-            "value": "1000",
+            "value": "100",
             "typeSettings": {
               "additionalResourceOptions": []
             },
@@ -320,13 +320,55 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet spike = materialize(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Spike = todouble(count()) / spikeDays,\n        DistinctDevices = dcount(DeviceName)\n        by InitiatingProcessFileName, ChildName\n    | top 200 by Spike desc\n);\nlet spikeParents = toscalar(spike | summarize make_set(InitiatingProcessFileName));\nlet base = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | where InitiatingProcessFileName in (spikeParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Baseline = todouble(count()) / baseDays\n        by InitiatingProcessFileName, ChildName;\nlet joined = materialize(\n    spike\n    | join kind=leftouter base on InitiatingProcessFileName, ChildName\n    | extend Baseline = coalesce(Baseline, real(0))\n    | extend Delta = Spike - Baseline\n    | where Delta > toreal('{Threshold}')\n);\nlet topParents = toscalar(joined | summarize make_set(InitiatingProcessFileName));\nlet attribution = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Vendors = make_set(Vendor, 3),\n        Products = make_set(Product, 3),\n        ParentPaths = make_set(ParentPath, 3)\n        by InitiatingProcessFileName;\njoined\n| join kind=leftouter attribution on InitiatingProcessFileName\n| project\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| order by Delta desc\n| take 50",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = (baseEnd - baseStart) / 1d);\nlet threshold = toreal('{Threshold}');\nlet spike = materialize(\n    {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Spike = todouble(count()) / spikeDays,\n        DistinctDevices = dcount(DeviceName)\n        by InitiatingProcessFileName, ChildName\n    | top 200 by Spike desc\n);\nlet spikeParents = toscalar(spike | summarize make_set(InitiatingProcessFileName));\nlet base = {Table}\n    | where Timestamp between (baseStart .. baseEnd)\n    | where InitiatingProcessFileName in (spikeParents)\n    | extend ChildName = column_ifexists('FileName', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Baseline = todouble(count()) / baseDays\n        by InitiatingProcessFileName, ChildName;\nlet joined = materialize(\n    spike\n    | join kind=leftouter base on InitiatingProcessFileName, ChildName\n    | extend Baseline = coalesce(Baseline, real(0))\n    | extend Delta = Spike - Baseline\n    | top 50 by Delta desc\n);\nlet topParents = toscalar(joined | summarize make_set(InitiatingProcessFileName));\nlet attribution = {Table}\n    | where Timestamp between (spikeStart .. spikeEnd)\n    | where InitiatingProcessFileName in (topParents)\n    | extend Vendor = column_ifexists('InitiatingProcessVersionInfoCompanyName', '')\n    | extend Product = column_ifexists('InitiatingProcessVersionInfoProductName', '')\n    | extend ParentPath = column_ifexists('InitiatingProcessFolderPath', '')\n    | summarize hint.strategy=shuffle hint.shufflekey=InitiatingProcessFileName\n        Vendors = make_set(Vendor, 3),\n        Products = make_set(Product, 3),\n        ParentPaths = make_set(ParentPath, 3)\n        by InitiatingProcessFileName;\njoined\n| join kind=leftouter attribution on InitiatingProcessFileName\n| extend AboveThreshold = iff(Delta > threshold, '\u2713', '')\n| project\n    AboveThreshold,\n    Vendors,\n    Products,\n    ParentFileName = InitiatingProcessFileName,\n    ParentPaths,\n    ChildName,\n    DistinctDevices,\n    Baseline = round(Baseline, 3),\n    Spike = round(Spike, 3),\n    Delta = round(Delta, 3)\n| order by Delta desc",
         "size": 0,
         "title": "Top process pairs above threshold (with vendor attribution)",
         "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "AboveThreshold",
+              "formatter": 0,
+              "formatOptions": {
+                "customColumnWidthSetting": "60px"
+              }
+            },
+            {
+              "columnMatch": "Baseline",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "blue",
+                "min": 0
+              }
+            },
+            {
+              "columnMatch": "Spike",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "red",
+                "min": 0
+              }
+            },
+            {
+              "columnMatch": "Delta",
+              "formatter": 8,
+              "formatOptions": {
+                "palette": "redBright"
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "Delta",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "visualization": "table"
       },
-      "name": "q-step3"
+      "name": "q-step3",
+      "title": "Top 50 process pairs by spike delta (threshold marker)"
     },
     {
       "type": 1,
