@@ -71,9 +71,13 @@
             "version": "KqlParameterItem/1.0",
             "name": "Threshold",
             "label": "Delta threshold (Step 3)",
-            "type": 1,
+            "type": 2,
             "isRequired": true,
-            "value": "10000"
+            "value": "1000",
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "jsonData": "[{\"value\":\"100\",\"label\":\"100\"},{\"value\":\"1000\",\"label\":\"1000\"},{\"value\":\"5000\",\"label\":\"5000\"},{\"value\":\"10000\",\"label\":\"10000\"}]"
           },
           {
             "id": "p-device",
