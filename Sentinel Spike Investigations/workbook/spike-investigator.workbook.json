@@ -307,9 +307,29 @@
             },
             {
               "columnMatch": "Delta",
-              "formatter": 8,
+              "formatter": 18,
               "formatOptions": {
-                "palette": "redBright"
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  {
+                    "operator": ">",
+                    "thresholdValue": "0",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "<",
+                    "thresholdValue": "0",
+                    "representation": "green",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "gray",
+                    "text": "{0}{1}"
+                  }
+                ]
               },
               "numberFormat": {
                 "unit": 17,
@@ -360,8 +380,23 @@
           "columnSettings": [
             {
               "columnId": "AboveThreshold",
-              "formatter": 1,
+              "formatter": 18,
               "formatOptions": {
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "true",
+                    "representation": "green",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  }
+                ],
                 "customColumnWidthSetting": "110px"
               }
             },
@@ -423,9 +458,29 @@
             },
             {
               "columnId": "Delta",
-              "formatter": 4,
+              "formatter": 18,
               "formatOptions": {
-                "palette": "redGreen",
+                "thresholdsOptions": "colors",
+                "thresholdsGrid": [
+                  {
+                    "operator": ">",
+                    "thresholdValue": "0",
+                    "representation": "redBright",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "<",
+                    "thresholdValue": "0",
+                    "representation": "green",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "gray",
+                    "text": "{0}{1}"
+                  }
+                ],
                 "customColumnWidthSetting": "110px"
               }
             }
