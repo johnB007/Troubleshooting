@@ -158,9 +158,9 @@
         "resourceType": "microsoft.operationalinsights/workspaces",
         "gridSettings": {
           "formatters": [
-          { "columnMatch": "SpikePerDay", "formatter": 5, "formatOptions": { "palette": "red" } },
-          { "columnMatch": "Delta", "formatter": 5, "formatOptions": { "palette": "red" } },
-          { "columnMatch": "Ratio", "formatter": 5, "formatOptions": { "palette": "redBright" } }
+          { "columnMatch": "SpikePerDay", "formatter": 5, "formatOptions": { "palette": "red", "aggregation": "Sum", "min": 0 } },
+          { "columnMatch": "Delta", "formatter": 5, "formatOptions": { "palette": "red", "aggregation": "Sum", "min": 0 } },
+          { "columnMatch": "Ratio", "formatter": 5, "formatOptions": { "palette": "redBright", "aggregation": "Sum", "min": 0 } }
           ]
         }
       },
@@ -197,8 +197,8 @@
         "resourceType": "microsoft.operationalinsights/workspaces",
         "gridSettings": {
           "formatters": [
-          { "columnMatch": "Spike", "formatter": 5, "formatOptions": { "palette": "red" } },
-          { "columnMatch": "Delta", "formatter": 5, "formatOptions": { "palette": "red" } }
+          { "columnMatch": "Spike", "formatter": 5, "formatOptions": { "palette": "red", "aggregation": "Sum", "min": 0 } },
+          { "columnMatch": "Delta", "formatter": 5, "formatOptions": { "palette": "red", "aggregation": "Sum", "min": 0 } }
           ]
         }
       },
