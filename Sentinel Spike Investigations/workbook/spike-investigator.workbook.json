@@ -175,7 +175,7 @@
     {
       "type": 1,
       "content": {
-        "json": "## Step 0 : Confirm the spike\n\nDaily row count for the selected table, comparing the spike window against the equally long period immediately before it (week over week). **Spike** is the window under investigation. **Baseline (prior period)** is the same number of days right before it, so the two totals at the bottom are directly comparable. If the Spike line and its total are not clearly above the prior period, there is no spike, stop here."
+        "json": "## Step 0 : Confirm the spike\n\nOne continuous daily row count for the selected table across the prior period and the spike window, plus a flat **Normal (prior median per day)** reference. The spike portion is colored separately from the prior period so the boundary is obvious, and the reference uses the median, not the mean, so a single bad day in the prior period does not pull the bar up. If the **Spike window** segment does not stay above the **Normal** line, there is no spike, stop here.\n\n> Tip: if the prior period itself has big outliers, narrow the **SpikeRange** to the last few days. The spike is usually concentrated there."
       },
       "name": "h-step0"
     },
@@ -183,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = startofday(datetime({SpikeRange:startISO}));\nlet spikeEnd = startofday(datetime({SpikeRange:endISO}));\nlet spikeDuration = spikeEnd - spikeStart;\nlet baseStart = spikeStart - spikeDuration;\nlet baseEnd = spikeStart;\nlet baseCounts = {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize Count = toreal(count()) by Day = bin(Timestamp, 1d), Series = \"Baseline (prior period)\";\nlet spikeCounts = {Table}\n    | where Timestamp >= spikeStart and Timestamp < spikeEnd\n    | summarize Count = toreal(count()) by Day = bin(Timestamp, 1d), Series = \"Spike\";\nunion baseCounts, spikeCounts\n| order by Day asc, Series asc",
+        "query": "let spikeStart = startofday(datetime({SpikeRange:startISO}));\nlet spikeEnd = startofday(datetime({SpikeRange:endISO}));\nlet spikeDuration = spikeEnd - spikeStart;\nlet baseStart = spikeStart - spikeDuration;\nlet baseEnd = spikeStart;\nlet daily = {Table}\n    | where Timestamp >= baseStart and Timestamp < spikeEnd\n    | summarize Count = toreal(count()) by Day = bin(Timestamp, 1d);\nlet normal = toreal(toscalar(daily | where Day < spikeStart | summarize percentile(Count, 50)));\nlet line = daily | extend Series = iff(Day >= spikeStart, \"Spike window\", \"Baseline (prior period)\");\nlet ref = range Day from baseStart to spikeEnd - 1d step 1d\n    | project Day, Count = normal, Series = \"Normal (prior median per day)\";\nunion line, ref\n| order by Day asc, Series asc",
         "size": 0,
         "title": "Daily row count: baseline vs spike",
         "queryType": 0,
