@@ -151,13 +151,26 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize SpikePerDay = todouble(count()) / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize BasePerDay = todouble(count()) / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, real(0)), BasePerDay = coalesce(BasePerDay, real(0))\n| extend Delta = SpikePerDay - BasePerDay\n| project ActionType, BasePerDay, SpikePerDay, Delta\n| order by Delta desc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize SpikePerDay = todouble(count()) / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize BasePerDay = todouble(count()) / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, real(0)), BasePerDay = coalesce(BasePerDay, real(0))\n| extend Delta = SpikePerDay - BasePerDay\n| extend Ratio = iff(BasePerDay > 0, round(SpikePerDay / BasePerDay, 3), real(null))\n| project ActionType, BasePerDay = round(BasePerDay, 3), SpikePerDay = round(SpikePerDay, 3), Delta = round(Delta, 3), Ratio\n| order by Delta desc",
         "size": 0,
         "title": "ActionType: spike per day vs baseline per day",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces"
       },
       "name": "q-step2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize SpikePerDay = todouble(count()) / spikeDays by ActionType;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize BasePerDay = todouble(count()) / baseDays by ActionType;\nspike\n| join kind=fullouter base on ActionType\n| extend ActionType = coalesce(ActionType, ActionType1), SpikePerDay = coalesce(SpikePerDay, real(0)), BasePerDay = coalesce(BasePerDay, real(0))\n| extend Delta = SpikePerDay - BasePerDay\n| order by Delta desc\n| take 15\n| project ActionType, BasePerDay = round(BasePerDay, 3), SpikePerDay = round(SpikePerDay, 3)",
+        "size": 0,
+        "title": "Top 15 ActionTypes: baseline per day vs spike per day",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "visualization": "barchart"
+      },
+      "name": "q-step2-chart"
     },
     {
       "type": 1,
@@ -170,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize Spike = todouble(count()) / spikeDays by InitiatingProcessFileName, FileName;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize Baseline = todouble(count()) / baseDays by InitiatingProcessFileName, FileName;\nspike\n| join kind=fullouter base on InitiatingProcessFileName, FileName\n| extend InitiatingProcessFileName = coalesce(InitiatingProcessFileName, InitiatingProcessFileName1), FileName = coalesce(FileName, FileName1), Spike = coalesce(Spike, real(0)), Baseline = coalesce(Baseline, real(0))\n| extend Delta = Spike - Baseline\n| where Delta > toreal('{Threshold}')\n| project ParentFileName = InitiatingProcessFileName, FileName, Baseline, Spike, Delta\n| order by Delta desc\n| take 50",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseDuration = datetime({BaselineRange:endISO}) - datetime({BaselineRange:startISO});\nlet baseStart = spikeStart - baseDuration;\nlet baseEnd = spikeStart;\nlet spikeDays = toscalar(print d = (spikeEnd - spikeStart) / 1d);\nlet baseDays = toscalar(print d = baseDuration / 1d);\nlet spike =\n    {Table}\n    | where Timestamp >= spikeStart and Timestamp <= spikeEnd\n    | summarize Spike = todouble(count()) / spikeDays by InitiatingProcessFileName, FileName;\nlet base =\n    {Table}\n    | where Timestamp >= baseStart and Timestamp < baseEnd\n    | summarize Baseline = todouble(count()) / baseDays by InitiatingProcessFileName, FileName;\nspike\n| join kind=fullouter base on InitiatingProcessFileName, FileName\n| extend InitiatingProcessFileName = coalesce(InitiatingProcessFileName, InitiatingProcessFileName1), FileName = coalesce(FileName, FileName1), Spike = coalesce(Spike, real(0)), Baseline = coalesce(Baseline, real(0))\n| extend Delta = Spike - Baseline\n| where Delta > toreal('{Threshold}')\n| project ParentFileName = InitiatingProcessFileName, FileName, Baseline = round(Baseline, 3), Spike = round(Spike, 3), Delta = round(Delta, 3)\n| order by Delta desc\n| take 50",
         "size": 0,
         "title": "Top process pairs above threshold",
         "queryType": 0,
