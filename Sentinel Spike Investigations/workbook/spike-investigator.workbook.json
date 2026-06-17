@@ -71,6 +71,7 @@
             "version": "KqlParameterItem/1.0",
             "name": "Threshold",
             "label": "Delta threshold (Step 3)",
+            "description": "Start at 1000. Raise it if Step 3 returns too many rows, lower it if Step 3 is empty.",
             "type": 2,
             "isRequired": true,
             "value": "1000",
