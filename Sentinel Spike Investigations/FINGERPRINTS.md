@@ -1,4 +1,70 @@
-# Fingerprints : known spike patterns
+# Sentinel spike fingerprints
+
+A catalogue of named, well understood ingestion spike patterns and
+the closeout language for each. When the top row of
+`03_spike_vs_baseline.kql` matches a fingerprint here, the
+investigation is usually done in minutes.
+
+## How to read this catalogue
+
+Each fingerprint has the same shape:
+
+- A heading naming the pattern.
+- A short **Trigger** paragraph describing the underlying activity
+  and what the top of `03_spike_vs_baseline.kql` looks like when the
+  pattern is in play. Read this against your Step 3 output.
+- A **Closeout** blockquote written in plain English for leadership.
+  Copy it into the ticket or brief, fill in the device groups or
+  date range, and you are done.
+
+Use it like this:
+
+1. Run [03_spike_vs_baseline.kql](03_spike_vs_baseline.kql).
+2. Look at the top row: the `Parent`, `Init`, and `Company` triplet.
+3. Search this page for the binary name (`tiworker.exe`,
+   `MsMpEng.exe`, `secureconnector.exe`, etc.) or the table name
+   (`SecurityEvent`, `Heartbeat`, etc.).
+4. If you find a match, paste the closeout and move on.
+5. If you do not, finish the rest of the playbook and add a new
+   fingerprint at the bottom of this file using the template in the
+   final section.
+
+## Confirmation queries
+
+For each Device* fingerprint you can confirm the match without
+leaving Advanced Hunting by pasting one of these one liners after
+Step 3:
+
+```kql
+// Confirm Microsoft servicing stack is responsible
+DeviceProcessEvents
+| where TimeGenerated > ago(3d)
+| where InitiatingProcessFileName == "tiworker.exe"
+   or FileName == "tiworker.exe"
+| summarize Events = count(), Devices = dcount(DeviceName)
+```
+
+```kql
+// Confirm Defender platform / signature update activity
+DeviceEvents
+| where TimeGenerated > ago(3d)
+| where InitiatingProcessFileName == "MsMpEng.exe"
+| summarize Events = count(), Devices = dcount(DeviceName)
+    by ActionType
+| top 10 by Events desc
+```
+
+```kql
+// Confirm a single third party agent is responsible
+let suspect = "secureconnector.exe"; // replace with the binary
+DeviceProcessEvents
+| where TimeGenerated > ago(3d)
+| where InitiatingProcessFileName == suspect
+   or FileName == suspect
+| summarize Events = count(), Devices = dcount(DeviceName)
+```
+
+## The catalogue
 
 Quick reference card. After running
 [03_spike_vs_baseline.kql](03_spike_vs_baseline.kql), match the top
@@ -403,3 +469,44 @@ with the SOC.
 > Trace the data connector that creates it and confirm whether the
 > data is in scope for SOC retention. If not, disable the connector
 > or move the table to the Lake tier.
+
+
+## How to add a new fingerprint
+
+When you finish an investigation that did not match any existing
+entry, add a new fingerprint at the end of the catalogue using this
+template:
+
+```markdown
+## Short descriptive name (lowercase plural is fine)
+
+**Trigger**: one or two sentences. Describe the underlying activity.
+Say what `03_spike_vs_baseline.kql` shows: the `Init` binary, the
+`Parent` process, the typical `Company` value, and the typical
+`ActionType` if relevant.
+
+**Closeout**:
+
+> One paragraph in plain English for leadership. Name the activity.
+> State whether anything is broken. State what action follows, if
+> any. Avoid KQL. Leave placeholders in curly braces for device
+> groups, date ranges, or vendor names you fill in per incident.
+```
+
+Also do two more things so the catalogue stays useful:
+
+1. **Update the index table**. If you keep an index of fingerprints
+   at the top of this file, add the new entry.
+2. **Add the closeout to the workbook**. Open
+   [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json),
+   find the `f-patch`, `f-defender`, or `f-mde` text items, and
+   duplicate one to create your new `f-<shortname>` item. Add the
+   same short name as an option in the `Fingerprint` parameter at
+   the top of the workbook. That way the workbook can emit the new
+   closeout language too.
+3. Run `python .tools/generate-docs.py` to refresh the HTML
+   siblings.
+
+A good rule of thumb: if you saw the same pattern twice in a year,
+it earns a fingerprint.
+

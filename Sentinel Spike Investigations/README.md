@@ -1,74 +1,287 @@
 # Sentinel Spike Investigations
 
-A ready playbook for the question "table X spiked, what is driving it?"
-in Microsoft Sentinel and Defender XDR. Seven numbered KQL files plus
-this playbook walk you from the first alert to a closeout you can paste
-into a brief.
+A complete, repeatable answer to one question:
+
+> Table X in Sentinel just spiked. What is driving it, and what do I
+> tell leadership?
+
+The package contains a step by step KQL playbook, a Sentinel Workbook
+that automates the whole flow, and a curated catalogue of known spike
+patterns so most investigations finish in minutes with ready to paste
+closeout language.
+
+## Who this is for
+
+- SOC analysts on the front line of ingestion alerts.
+- Detection engineers tuning data collection rules.
+- Sentinel and Defender XDR admins who need to defend ingestion cost
+  to leadership.
+- Anyone who has ever had to answer the question "why did our log
+  bill go up this week" in a hurry.
 
 ## What is in this folder
 
-| File | Purpose |
+| File or folder | What it is |
 |---|---|
-| [PLAYBOOK.md](PLAYBOOK.md) | The step by step procedure. Open this first when a spike fires. |
-| [FINGERPRINTS.md](FINGERPRINTS.md) | One page quick reference of known spike patterns. Match the top of your spike vs baseline output against this list and you may be done. |
-| [workbook/](workbook/) | Optional automated path. A single Sentinel Workbook that runs all seven steps in place, with click to drill devices and a fingerprint switcher that surfaces ready to paste closeout language. Requires the Defender XDR data connector. |
-| [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable DataType by daily GB delta. Names the table. |
-| [01_when_spiked_timechart.kql](01_when_spiked_timechart.kql) | Hourly timechart for the chosen table over the spike plus 7 days of baseline. |
-| [02_top_actiontypes.kql](02_top_actiontypes.kql) | For tables that have ActionType (DeviceEvents, DeviceFileEvents, etc.), ranks ActionType during the spike. |
-| [03_spike_vs_baseline.kql](03_spike_vs_baseline.kql) | The most important query. Names the binary driving the spike by joining spike window vs prior 7 days on parent process, child process, and company. |
-| [04_top_destinations.kql](04_top_destinations.kql) | Once you have a binary, shows where it is writing, connecting, or registering. |
-| [05_device_concentration.kql](05_device_concentration.kql) | Fleet wide rollout or a small number of broken devices? Top 25 devices with fleet share. |
-| [06_drill_processtree.kql](06_drill_processtree.kql) | Final proof. Pulls DeviceProcessEvents for one suspect device in a 3 hour window and shows the parent chain. |
+| [README.md](README.md) | This file. Start here. |
+| [PLAYBOOK.md](PLAYBOOK.md) | The manual, query by query procedure. Edit one date block, run, read, repeat. |
+| [FINGERPRINTS.md](FINGERPRINTS.md) | A growing catalogue of named spike patterns (Patch Tuesday, MDE platform update, third party agent reinstall, and twenty more) with ready to paste closeout language for each. |
+| [workbook/](workbook/) | An optional Sentinel Workbook that runs every step of the playbook in place, with color coded deltas, attribution lookup, drilldown on click, and a fingerprint switcher that emits closeout language. |
+| [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json) | The workbook itself. Import once via Sentinel : Workbooks : Add workbook : Advanced Editor. |
+| [workbook/README.md](workbook/README.md) | One time import instructions and an item by item tour of the workbook. |
+| [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable `DataType` by daily GB delta. Names the table that grew. |
+| [01_when_spiked_timechart.kql](01_when_spiked_timechart.kql) | Hourly timechart for the suspect table across the spike window plus 7 days of baseline. Pins the start hour. |
+| [02_top_actiontypes.kql](02_top_actiontypes.kql) | For tables with an `ActionType` column, ranks ActionType during the spike. Usually one or two ActionTypes account for most of the volume. |
+| [03_spike_vs_baseline.kql](03_spike_vs_baseline.kql) | The key query. Joins spike vs prior 7 days grouped by parent process, init process, and company. Top row almost always names the binary. |
+| [04_top_destinations.kql](04_top_destinations.kql) | Once a binary is named, shows where it is writing files, connecting on the network, touching the registry, or loading DLLs. |
+| [05_device_concentration.kql](05_device_concentration.kql) | Top 25 devices with FleetShare percent. Decides fleet wide rollout vs a handful of broken hosts. |
+| [06_drill_processtree.kql](06_drill_processtree.kql) | Full parent chain for the suspect process on one device in a 3 hour window. The proof you paste into the brief. |
+
+Every Markdown file has a sibling `.html` rendered with the same
+template so the package can be browsed without a Markdown viewer.
+
+## The three modes of use
+
+You can drive this package in three different ways depending on how
+much tooling you have. Pick the one that fits your environment.
+
+### Mode 1 : KQL only
+
+Open Advanced Hunting (Defender XDR) and Sentinel Logs in side by
+side browser tabs. Work the seven `.kql` files in order. Edit one
+date block per file. No imports, no setup, no extra permissions.
+This is the canonical mode and works in any tenant.
+
+Best for: a one off spike, a tenant where you do not own the
+workbook gallery, training a new analyst from first principles.
+
+### Mode 2 : Workbook
+
+Import [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json)
+into Sentinel : Workbooks once. After that every spike becomes a
+fill in the parameters exercise. The workbook runs every query, color
+codes the deltas (green = below baseline, red = above), shows vendor
+and product attribution next to each binary, lets you click a device
+row to pin Step 5, and emits ready to paste closeout language when
+you pick a matching fingerprint.
+
+Best for: a SOC that responds to ingestion alerts more than once a
+month. The setup pays for itself the second time you use it.
+
+### Mode 3 : Both
+
+Use the workbook for the first pass. When something does not fit a
+known fingerprint, drop into the raw KQL files to extend, customise,
+or save a tenant specific variant. The workbook and the files share
+the same query shapes so what you learn in one transfers cleanly to
+the other.
 
 ## Fast path
 
-If you are reading this during a live spike, do this:
+If a spike alert just fired and you have an hour, do this:
 
 1. Open [PLAYBOOK.md](PLAYBOOK.md).
-2. Work the seven queries in order. Each query takes about a minute to
-   edit and run.
-3. After query 03 produces a result, scan [FINGERPRINTS.md](FINGERPRINTS.md).
-   If the top binaries match one of the known patterns, jump to the
-   closeout language in that row and you are done.
-4. If nothing matches, finish queries 04, 05, and 06 to confirm root
-   cause, then write your own closeout following the structure in the
+2. Run Step 0 in Sentinel Logs to name the table.
+3. Run Steps 1, 2, 3 in Advanced Hunting against that table.
+4. Open [FINGERPRINTS.md](FINGERPRINTS.md) and search for the top
+   two binary names from Step 3. If you find a match, copy the
+   closeout language from that row and you are done.
+5. If no match, run Steps 4, 5, 6 to confirm root cause and write
+   your own closeout using the structure at the bottom of the
    playbook.
 
-### Even faster path : the workbook
-
-If the workspace has the Defender XDR data connector enabled, import
-[workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json)
-into Sentinel : Workbooks once. After that, every spike becomes:
-set the time pickers, click the top device row in Step 4, pick the
-matching fingerprint at the bottom, paste the closeout into the
-ticket. See [workbook/README.md](workbook/README.md) for the one
-time import steps.
+If you have the workbook imported, replace steps 2 through 5 with
+"set the parameters at the top of the workbook" and read down the
+page.
 
 ## Prerequisites
 
-- Access to Microsoft Defender XDR Advanced Hunting:
-  `https://security.microsoft.com/v2/advanced-hunting`
-- Access to Microsoft Sentinel Logs in the Azure portal for query 00,
-  which runs against the workspace `Usage` table.
-- A text editor for editing the date range at the top of each KQL file.
-  VS Code is fine. Notepad works.
+| Capability | Used by |
+|---|---|
+| Sentinel reader on the target workspace | Step 0 (Usage table is in Sentinel, not Defender XDR) |
+| Microsoft Defender XDR Advanced Hunting access | Steps 1 through 6, plus every query in the workbook |
+| Defender XDR data connector enabled on the Sentinel workspace | Workbook only (so the `Device*` tables land in Log Analytics where the workbook reads them) |
+| A text editor for the KQL files | VS Code is ideal. Notepad works. |
 
-## Why this exists
+The KQL files themselves have no other dependencies. They reference
+only built in tables (`Usage` for Step 0, `Device*` and a few
+Sentinel native tables for the rest).
 
-The Sentinel ingestion workbook tells you which vendor or table grew.
-It does not tell you which binary inside the table caused the growth.
-The seven queries in this folder fill that gap. The most important one
-is query 03, which compares the spike window against the prior 7 days
-grouped by parent process, child process, and company. The top row of
-that result almost always names the culprit.
+## Glossary
 
-## When NOT to use this
+A short reference so the rest of the package reads consistently.
 
-- For cost forecasting or chargeback. Use the ingestion workbook.
-- For real time alerting on volume. Use scheduled analytics rules.
-- For investigations of a specific alert or incident. Use the alert
-  page in Defender XDR.
+- **DataType**: the column the Sentinel `Usage` table uses for the
+  table name. Same value as the table you would query (e.g.
+  `DeviceFileEvents`).
+- **Spike window**: the date range the spike covers. Set this to the
+  first and last day of elevated volume, or first day and today if
+  the spike is ongoing.
+- **Baseline window**: the comparable period of normal volume. The
+  KQL files default to the 7 days immediately before the spike. The
+  workbook lets you pick any window with a time picker.
+- **Per day normalisation**: dividing the windowed total by the
+  number of days in the window so a 3 day spike can be compared
+  directly to a 7 day baseline.
+- **ActionType**: the second level classifier on the `Device*` tables
+  (`FileCreated`, `ProcessCreated`, `AntivirusScanCompleted`, etc.).
+  One ActionType usually drives most of any spike on those tables.
+- **Initiator triplet**: the three columns Step 3 groups by, which
+  uniquely identify a chain of activity on a device:
+  `InitiatingProcessParentFileName` (grandparent of the action),
+  `InitiatingProcessFileName` (the binary that did the action), and
+  `InitiatingProcessVersionInfoCompanyName` (signing publisher).
+- **Vendor and product attribution**: the workbook joins each row
+  from Step 3 and Step 5 against the binary metadata
+  (`InitiatingProcessVersionInfoCompanyName` and `ProductName`) so
+  the table shows publisher and product name next to each binary
+  even when only the file name is interesting.
+- **Fleet share**: percentage of the total spike events that a
+  single device accounts for. High fleet share on one device means
+  the device is broken. Low fleet share spread across thousands of
+  devices means a fleet wide rollout.
+- **Fingerprint**: a named, well understood spike pattern with a
+  short closeout. Listed in [FINGERPRINTS.md](FINGERPRINTS.md). The
+  workbook lets you switch fingerprints from a dropdown and surfaces
+  the closeout language at the bottom.
+- **Closeout**: the three part write up you produce at the end of an
+  investigation. Outcome (one sentence), evidence chain (which queries
+  showed what), brief language (plain English for leadership).
 
-This folder is for the narrow case: a table volume spiked, leadership
-wants to know why, and you have a few hours to find out and write it
-up.
+## How the workbook and the KQL files relate
+
+The workbook does not invent any new queries. Every query in it is a
+direct port of the KQL file with the same step number, with three
+differences:
+
+1. **Parameters instead of literals**. The date block is replaced
+   with workbook parameters (`{SpikeRange}` and `{BaselineRange}`)
+   so the picker UI drives the dates.
+2. **Per day normalisation everywhere**. Both spike and baseline are
+   divided by their day count so any two windows are directly
+   comparable.
+3. **Attribution join**. Steps 3 and 5 join against a small lookup
+   that pulls vendor and product name from the binary metadata so
+   the table shows the publisher next to the file name.
+
+If you want to understand a workbook query, open the matching
+numbered `.kql` file. The intent is identical.
+
+## Anomaly section in the workbook
+
+The workbook starts with an extra section that does not exist as a
+standalone `.kql` file: a 30 day anomaly scan across every billable
+table using `series_decompose_anomalies`. It surfaces tables that
+spiked abruptly in a single day and were ignored.
+
+This is intentionally narrow. The scan catches abrupt one day jumps
+against a linefit baseline. A sustained, multi day rise (the
+DeviceFileEvents pattern in this lab is a good example) is absorbed
+into the baseline and scores below the alerting threshold. Sustained
+rises are what Steps 0 through 3 are designed to catch, so the two
+views are complementary, not duplicative.
+
+There are also two trivia guards in the anomaly query:
+
+- `MinDailyVolume = 100` filters out near zero tables that read as
+  100 percent anomalies on a 0 row to 1 row jump.
+- `Score >= 3.0` is the standard `series_decompose_anomalies` cutoff.
+
+If the anomaly section returns zero rows, that is the healthy state:
+no abrupt one day spikes worth chasing. Steps 0 through 3 still
+apply.
+
+## How to add a new fingerprint
+
+When you finish an investigation that did not match an existing
+fingerprint:
+
+1. Open [FINGERPRINTS.md](FINGERPRINTS.md).
+2. Copy the structure of an existing entry (heading, "Trigger" line,
+   "Closeout" block as a `> blockquote`).
+3. Add a row to the table in `FINGERPRINTS.md` so the index stays in
+   sync.
+4. If the pattern is one you expect to see again, also add a matching
+   `f-<shortname>` text item to the workbook so the Fingerprint
+   dropdown can switch to it. Use one of the existing
+   `f-patch`, `f-defender`, `f-mde` items as a template.
+5. Regenerate the HTML siblings with `python .tools/generate-docs.py`.
+
+## Limitations and known gaps
+
+- **Anomaly section only catches abrupt one day spikes**. Sustained
+  multi day rises do not score above the threshold. Use Steps 0
+  through 3 for those, which is what they are designed for.
+- **The workbook needs the Defender XDR data connector**. Without
+  the connector, the `Device*` tables are empty in Log Analytics and
+  the workbook returns no rows. The standalone `.kql` files still
+  work in Advanced Hunting in that case.
+- **Step 0 reads the `Usage` table**, which only exists in Sentinel,
+  not in Defender XDR Advanced Hunting. Run it in Sentinel Logs.
+- **`series_decompose_anomalies` is sensitive to gaps**. A table
+  that was paused for a day and resumed reads as an anomaly. Treat
+  scores between 3 and 5 with care.
+- **Fingerprint catalogue is not exhaustive**. About twenty patterns
+  are listed. New ones appear constantly. The structure is designed
+  to be appended to.
+
+## When NOT to use this package
+
+- For cost forecasting or chargeback reports. Use the Sentinel
+  Workspace usage workbook in the Azure portal.
+- For real time alerting on volume changes. Use scheduled analytics
+  rules.
+- For investigating a specific security alert or incident. Use the
+  alert page in Defender XDR.
+
+This package is for one specific case: a table volume spiked,
+leadership wants to know why, and you have a short window to find
+out and write it up.
+
+## Closeout template
+
+Every investigation finishes with this structure. Paste it into the
+ticket or brief:
+
+```
+Outcome
+-------
+<one sentence: what is the spike, was anything broken, what action
+follows?>
+
+Evidence chain
+--------------
+- Step 0 (00_what_table_spiked.kql): <which table led, by how much>
+- Step 1 (01_when_spiked_timechart.kql): <when it started, ongoing or not>
+- Step 2 (02_top_actiontypes.kql): <which ActionType dominated>
+- Step 3 (03_spike_vs_baseline.kql): <named binary and parent>
+- Step 4 (04_top_destinations.kql): <where the binary wrote / connected>
+- Step 5 (05_device_concentration.kql): <fleet wide or a few hosts>
+- Step 6 (06_drill_processtree.kql): <full parent chain on one host>
+
+Brief language
+--------------
+<plain English paragraph for leadership: no KQL, name the activity,
+state whether action is required.>
+```
+
+## Layout of a typical investigation
+
+A normal investigation ends in three to fifteen minutes of click time
+plus query runtime. The walltime is dominated by KQL queries against
+big tables. Expect:
+
+- Step 0 against `Usage`: a few seconds.
+- Steps 1 and 2 hourly against one `Device*` table over 10 days:
+  10 to 30 seconds each.
+- Step 3 over 10 days grouped by three columns: 20 to 90 seconds.
+- Steps 4 through 6 narrowed by binary or device: a few seconds each.
+
+If a query times out, narrow the spike window first, then the table
+filter, then add an `ActionType` prefilter.
+
+## Repo, license, and contribution
+
+This folder lives in the public `johnB007/Troubleshooting` repository
+on GitHub. Pull requests are welcome, particularly for new fingerprint
+entries. Use the structure at the end of [FINGERPRINTS.md](FINGERPRINTS.md).
