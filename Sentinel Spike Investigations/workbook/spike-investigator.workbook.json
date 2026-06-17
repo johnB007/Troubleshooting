@@ -183,7 +183,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\n{Table}\n| where Timestamp between (baseStart .. spikeEnd)\n| summarize hint.strategy=shuffle Rows = count() by Day = bin(Timestamp, 1d)\n| extend Window = iff(Day >= bin(spikeStart, 1d), 'Spike', 'Baseline')\n| project Day, Window, Rows\n| order by Day asc",
+        "query": "let spikeStart = datetime({SpikeRange:startISO});\nlet spikeEnd = datetime({SpikeRange:endISO});\nlet baseStart = datetime({BaselineRange:startISO});\nlet baseEnd = datetime({BaselineRange:endISO});\nunion\n    (\n        {Table}\n        | where Timestamp between (baseStart .. baseEnd)\n        | project Timestamp\n        | summarize Baseline = count() by Day = bin(Timestamp, 1d)\n    ),\n    (\n        {Table}\n        | where Timestamp between (spikeStart .. spikeEnd)\n        | project Timestamp\n        | summarize Spike = count() by Day = bin(Timestamp, 1d)\n    )\n| summarize Baseline = sum(Baseline), Spike = sum(Spike) by Day\n| order by Day asc",
         "size": 0,
         "title": "Daily row count: baseline vs spike",
         "timeContext": {
@@ -191,7 +191,33 @@
         },
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
-        "visualization": "timechart"
+        "visualization": "timechart",
+        "chartSettings": {
+          "xAxis": "Day",
+          "yAxis": [
+            "Baseline",
+            "Spike"
+          ],
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Baseline",
+              "color": "blue"
+            },
+            {
+              "seriesName": "Spike",
+              "color": "redBright"
+            }
+          ],
+          "ySettings": {
+            "numberFormatSettings": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "useGrouping": true
+              }
+            }
+          }
+        }
       },
       "name": "q-step0"
     },
