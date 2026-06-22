@@ -60,9 +60,7 @@ columns:
   is the table to investigate.
 - A ratio above `1.5` is interesting. Below that is noise.
 - A baseline of `0.0` plus a non zero spike means a brand new table
-  appeared. Treat it as a connector change rather than a spike. See
-  the "Brand new table" fingerprint in
-  [FINGERPRINTS.md](FINGERPRINTS.md).
+  appeared. Treat it as a connector change rather than a spike.
 
 **What you do next**: write down the `DataType` name. If the top row
 is a `Device*` table, continue to Step 1. If it is one of the
@@ -176,15 +174,15 @@ the extra volume.
   include `services.exe` to `MsMpEng.exe`. Known third party agent
   pairs include the agent service spawning its worker process.
 
-**What you do next**: scan [FINGERPRINTS.md](FINGERPRINTS.md) for
-the top one or two `Init` values. If a fingerprint matches, you
-likely have your answer. Continue to Step 4 for confirmation.
+**What you do next**: read the top one or two `Init` values. A
+recognised servicing or agent binary usually points straight at the
+cause. Continue to Step 4 for confirmation.
 
 **Worked example from the lab**: the top row was
 `Init = MsMpEng.exe`, `Parent = services.exe`,
-`Company = microsoft corporation`, `Delta = 1.2M`. Matches the
-"Defender platform and signature update" fingerprint exactly. The
-investigation closed at the fingerprint step.
+`Company = microsoft corporation`, `Delta = 1.2M`. This is the
+Microsoft Defender platform and signature update pattern. The
+investigation closed at this step.
 
 ## Step 4 : confirm with destination data
 
@@ -253,10 +251,10 @@ the spike with three columns:
   Go straight to Step 6 with that device name.
 
 **What you do next**: if the pattern is fleet wide and Step 3
-matched a fingerprint, you are done. Write the closeout using the
-matching row in [FINGERPRINTS.md](FINGERPRINTS.md). If the pattern
-is the runaway device case, continue to Step 6 with one of the
-device names.
+named a recognised binary, you are done. Write the closeout using
+the structure at the bottom of this playbook. If the pattern is the
+runaway device case, continue to Step 6 with one of the device
+names.
 
 ## Step 6 : prove root cause on a single device
 
@@ -353,9 +351,8 @@ Things that look like shortcuts but cost time:
   you lower it.
 - **Reading `Ratio` without `Delta`**. A row with `Spike = 5,
   Baseline = 1, Ratio = 5.0` is noise. Always sort by `Delta` first.
-- **Calling Patch Tuesday "an incident"**. The fingerprint catalogue
-  exists so well understood patterns close fast without
-  organisational noise.
+- **Calling Patch Tuesday "an incident"**. Well understood patterns
+  should close fast without organisational noise.
 
 ## Where this leaves you
 
@@ -364,8 +361,7 @@ After Step 6 you have:
 - A named table.
 - A named binary.
 - A named publisher.
-- A named pattern (from the fingerprint catalogue) or a custom
-  closeout.
+- A named pattern or a custom closeout.
 - An evidence chain that any reviewer can reproduce in minutes.
 
 That is enough to close the alert, file the brief, and move on.

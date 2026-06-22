@@ -5,8 +5,7 @@ playbook in the parent folder. Instead of opening the seven `.kql`
 files one at a time and pasting results between tabs, the workbook
 runs every step in place against the connected Log Analytics
 workspace with color coded deltas, vendor and product attribution,
-click to drill on devices, and a fingerprint switcher that emits
-ready to paste closeout language.
+and click to drill on devices.
 
 This README documents the import, the parameters, every step in the
 workbook, and how to extend it.
@@ -63,7 +62,6 @@ top. Setting these is the only step you take per investigation.
 | `SelectPct` | text | `5` | Floor for which ActionTypes Step 2's chart shows. Lower means more bars, more noise. |
 | `Threshold` | text | `10000` | The `Spike > N` cutoff in Step 3. Raise on very high volume tables. |
 | `Device` | text | empty | The device name Step 5 drills into. Set by clicking a row in Step 4. |
-| `Fingerprint` | dropdown | `patch` | Picks which closeout language Step 6 displays at the bottom of the workbook. |
 
 The two time pickers are independent. Set the `SpikeRange` to the
 days that look high. Set the `BaselineRange` to a comparable period
@@ -73,8 +71,7 @@ default and a good choice.
 ## The sections, top to bottom
 
 The workbook renders the same flow as the playbook with two
-additions at the top (an intro and an anomaly scan) and a fingerprint
-emitter at the bottom.
+additions at the top: an intro and an anomaly scan.
 
 ### Intro
 
@@ -182,53 +179,8 @@ Columns: `ParentName`, `InitName`, `Vendors`, `Products`, `Events`.
 The query is hidden until a `Device` is selected. To clear it, set
 the `Device` parameter to empty at the top of the workbook.
 
-### Step 6 : match the fingerprint and grab the closeout
-
-`h-step6` plus a series of `f-<shortname>` text items, one per
-known fingerprint. The `Fingerprint` parameter at the top of the
-workbook drives which one renders. Pick the matching pattern and
-copy the closeout paragraph into the ticket.
-
-The current fingerprints in the dropdown:
-
-| Value | Pattern |
-|---|---|
-| `patch` | Patch Tuesday servicing wave |
-| `defender` | Microsoft Defender platform and signature update |
-| `mde` | MDE onboarding wave |
-| `thirdparty` | Third party endpoint agent reinstall or refresh |
-| `featureupdate` | Windows feature update (major version uplift) |
-| `intunemecm` | Intune or Configuration Manager software deployment |
-| `avscan` | Scheduled Defender AV scan window |
-| `backup` | Backup agent snapshot creation |
-| `arc` | Azure Arc agent rollout |
-| `sysmon` | Sysmon configuration push |
-| `dlp` | Microsoft Purview Endpoint DLP rollout |
-| `cert` | Certificate auto enrollment wave |
-| `policy` | Group Policy or Intune policy refresh storm |
-| `vulnscan` | Vulnerability scanner sweep |
-| `discoverysweep` | Asset inventory or NAC discovery sweep |
-| `rmmscript` | Remote management tool scheduled action |
-| `browserupdate` | Browser enterprise update wave (Edge, Chrome, Firefox) |
-| `mdisensor` | Microsoft Defender for Identity sensor install |
-| `drtest` | Disaster recovery or failover test (duplicate telemetry) |
-| `dcrchange` | Data Collection Rule edit added new sources |
-| `forwarderdup` | Duplicate forwarders (overlapping DCRs, MMA and AMA both running) |
-| `unknown` | Custom closeout template with placeholders to fill in |
-
-If your pattern is not in the dropdown, pick `unknown` and edit the
-template into a real closeout. Then add the pattern to
-[FINGERPRINTS.md](../FINGERPRINTS.md) and, if you expect to see it
-again, add a matching `f-<shortname>` text item to the workbook
-following the pattern of the existing entries.
-
 ## What the workbook does not do
 
-- It does not replace [FINGERPRINTS.md](../FINGERPRINTS.md) as the
-  catalogue of known patterns. The workbook surfaces closeout
-  language for the patterns hardcoded in the dropdown. New
-  patterns are added to the Markdown catalogue first, and then to
-  the workbook only if they will recur.
 - It does not write back to Sentinel. The output is a view and a
   closeout, not an automated action.
 - It does not run anything on a schedule. It runs when an analyst

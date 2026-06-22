@@ -5,10 +5,9 @@ A complete, repeatable answer to one question:
 > Table X in Sentinel just spiked. What is driving it, and what do I
 > tell leadership?
 
-The package contains a step by step KQL playbook, a Sentinel Workbook
-that automates the whole flow, and a curated catalogue of known spike
-patterns so most investigations finish in minutes with ready to paste
-closeout language.
+The package contains a step by step KQL playbook and a Sentinel Workbook
+that automates the whole flow so most investigations finish in minutes
+with a ready to paste closeout.
 
 ## Who this is for
 
@@ -25,8 +24,7 @@ closeout language.
 |---|---|
 | [README.md](README.md) | This file. Start here. |
 | [PLAYBOOK.md](PLAYBOOK.md) | The manual, query by query procedure. Edit one date block, run, read, repeat. |
-| [FINGERPRINTS.md](FINGERPRINTS.md) | A growing catalogue of named spike patterns (Patch Tuesday, MDE platform update, third party agent reinstall, and twenty more) with ready to paste closeout language for each. |
-| [workbook/](workbook/) | An optional Sentinel Workbook that runs every step of the playbook in place, with color coded deltas, attribution lookup, drilldown on click, and a fingerprint switcher that emits closeout language. |
+| [workbook/](workbook/) | An optional Sentinel Workbook that runs every step of the playbook in place, with color coded deltas, attribution lookup, and drilldown on click. |
 | [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json) | The workbook itself. Import once via Sentinel : Workbooks : Add workbook : Advanced Editor. |
 | [workbook/README.md](workbook/README.md) | One time import instructions and an item by item tour of the workbook. |
 | [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable `DataType` by daily GB delta. Names the table that grew. |
@@ -61,9 +59,8 @@ Import [workbook/spike-investigator.workbook.json](workbook/spike-investigator.w
 into Sentinel : Workbooks once. After that every spike becomes a
 fill in the parameters exercise. The workbook runs every query, color
 codes the deltas (green = below baseline, red = above), shows vendor
-and product attribution next to each binary, lets you click a device
-row to pin Step 5, and emits ready to paste closeout language when
-you pick a matching fingerprint.
+and product attribution next to each binary, and lets you click a
+device row to pin Step 5.
 
 Best for: a SOC that responds to ingestion alerts more than once a
 month. The setup pays for itself the second time you use it.
@@ -71,7 +68,7 @@ month. The setup pays for itself the second time you use it.
 ### Mode 3 : Both
 
 Use the workbook for the first pass. When something does not fit a
-known fingerprint, drop into the raw KQL files to extend, customise,
+known pattern, drop into the raw KQL files to extend, customise,
 or save a tenant specific variant. The workbook and the files share
 the same query shapes so what you learn in one transfers cleanly to
 the other.
@@ -83,12 +80,8 @@ If a spike alert just fired and you have an hour, do this:
 1. Open [PLAYBOOK.md](PLAYBOOK.md).
 2. Run Step 0 in Sentinel Logs to name the table.
 3. Run Steps 1, 2, 3 in Advanced Hunting against that table.
-4. Open [FINGERPRINTS.md](FINGERPRINTS.md) and search for the top
-   two binary names from Step 3. If you find a match, copy the
-   closeout language from that row and you are done.
-5. If no match, run Steps 4, 5, 6 to confirm root cause and write
-   your own closeout using the structure at the bottom of the
-   playbook.
+4. Run Steps 4, 5, 6 to confirm root cause and write your closeout
+   using the structure at the bottom of the playbook.
 
 If you have the workbook imported, replace steps 2 through 5 with
 "set the parameters at the top of the workbook" and read down the
@@ -140,10 +133,6 @@ A short reference so the rest of the package reads consistently.
   single device accounts for. High fleet share on one device means
   the device is broken. Low fleet share spread across thousands of
   devices means a fleet wide rollout.
-- **Fingerprint**: a named, well understood spike pattern with a
-  short closeout. Listed in [FINGERPRINTS.md](FINGERPRINTS.md). The
-  workbook lets you switch fingerprints from a dropdown and surfaces
-  the closeout language at the bottom.
 - **Closeout**: the three part write up you produce at the end of an
   investigation. Outcome (one sentence), evidence chain (which queries
   showed what), brief language (plain English for leadership).
@@ -191,22 +180,6 @@ If the anomaly section returns zero rows, that is the healthy state:
 no abrupt one day spikes worth chasing. Steps 0 through 3 still
 apply.
 
-## How to add a new fingerprint
-
-When you finish an investigation that did not match an existing
-fingerprint:
-
-1. Open [FINGERPRINTS.md](FINGERPRINTS.md).
-2. Copy the structure of an existing entry (heading, "Trigger" line,
-   "Closeout" block as a `> blockquote`).
-3. Add a row to the table in `FINGERPRINTS.md` so the index stays in
-   sync.
-4. If the pattern is one you expect to see again, also add a matching
-   `f-<shortname>` text item to the workbook so the Fingerprint
-   dropdown can switch to it. Use one of the existing
-   `f-patch`, `f-defender`, `f-mde` items as a template.
-5. Regenerate the HTML siblings with `python .tools/generate-docs.py`.
-
 ## Limitations and known gaps
 
 - **Anomaly section only catches abrupt one day spikes**. Sustained
@@ -221,9 +194,6 @@ fingerprint:
 - **`series_decompose_anomalies` is sensitive to gaps**. A table
   that was paused for a day and resumed reads as an anomaly. Treat
   scores between 3 and 5 with care.
-- **Fingerprint catalogue is not exhaustive**. About twenty patterns
-  are listed. New ones appear constantly. The structure is designed
-  to be appended to.
 
 ## When NOT to use this package
 
@@ -283,5 +253,4 @@ filter, then add an `ActionType` prefilter.
 ## Repo, license, and contribution
 
 This folder lives in the public `johnB007/Troubleshooting` repository
-on GitHub. Pull requests are welcome, particularly for new fingerprint
-entries. Use the structure at the end of [FINGERPRINTS.md](FINGERPRINTS.md).
+on GitHub. Pull requests are welcome.

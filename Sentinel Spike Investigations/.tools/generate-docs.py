@@ -1,7 +1,7 @@
 """
 Generates the publication docs for the Sentinel Spike Investigations folder.
 
-Writes the four Markdown files (README.md, PLAYBOOK.md, FINGERPRINTS.md,
+Writes the three Markdown files (README.md, PLAYBOOK.md,
 workbook/README.md) and renders a matching .html sibling for each one using
 the same minimal CSS template the existing HTML files already use.
 
@@ -66,10 +66,9 @@ A complete, repeatable answer to one question:
 > Table X in Sentinel just spiked. What is driving it, and what do I
 > tell leadership?
 
-The package contains a step by step KQL playbook, a Sentinel Workbook
-that automates the whole flow, and a curated catalogue of known spike
-patterns so most investigations finish in minutes with ready to paste
-closeout language.
+The package contains a step by step KQL playbook and a Sentinel Workbook
+that automates the whole flow so most investigations finish in minutes
+with a ready to paste closeout.
 
 ## Who this is for
 
@@ -86,8 +85,7 @@ closeout language.
 |---|---|
 | [README.md](README.md) | This file. Start here. |
 | [PLAYBOOK.md](PLAYBOOK.md) | The manual, query by query procedure. Edit one date block, run, read, repeat. |
-| [FINGERPRINTS.md](FINGERPRINTS.md) | A growing catalogue of named spike patterns (Patch Tuesday, MDE platform update, third party agent reinstall, and twenty more) with ready to paste closeout language for each. |
-| [workbook/](workbook/) | An optional Sentinel Workbook that runs every step of the playbook in place, with color coded deltas, attribution lookup, drilldown on click, and a fingerprint switcher that emits closeout language. |
+| [workbook/](workbook/) | An optional Sentinel Workbook that runs every step of the playbook in place, with color coded deltas, attribution lookup, and drilldown on click. |
 | [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json) | The workbook itself. Import once via Sentinel : Workbooks : Add workbook : Advanced Editor. |
 | [workbook/README.md](workbook/README.md) | One time import instructions and an item by item tour of the workbook. |
 | [00_what_table_spiked.kql](00_what_table_spiked.kql) | Ranks every billable `DataType` by daily GB delta. Names the table that grew. |
@@ -122,9 +120,8 @@ Import [workbook/spike-investigator.workbook.json](workbook/spike-investigator.w
 into Sentinel : Workbooks once. After that every spike becomes a
 fill in the parameters exercise. The workbook runs every query, color
 codes the deltas (green = below baseline, red = above), shows vendor
-and product attribution next to each binary, lets you click a device
-row to pin Step 5, and emits ready to paste closeout language when
-you pick a matching fingerprint.
+and product attribution next to each binary, and lets you click a
+device row to pin Step 5.
 
 Best for: a SOC that responds to ingestion alerts more than once a
 month. The setup pays for itself the second time you use it.
@@ -132,7 +129,7 @@ month. The setup pays for itself the second time you use it.
 ### Mode 3 : Both
 
 Use the workbook for the first pass. When something does not fit a
-known fingerprint, drop into the raw KQL files to extend, customise,
+known pattern, drop into the raw KQL files to extend, customise,
 or save a tenant specific variant. The workbook and the files share
 the same query shapes so what you learn in one transfers cleanly to
 the other.
@@ -144,12 +141,8 @@ If a spike alert just fired and you have an hour, do this:
 1. Open [PLAYBOOK.md](PLAYBOOK.md).
 2. Run Step 0 in Sentinel Logs to name the table.
 3. Run Steps 1, 2, 3 in Advanced Hunting against that table.
-4. Open [FINGERPRINTS.md](FINGERPRINTS.md) and search for the top
-   two binary names from Step 3. If you find a match, copy the
-   closeout language from that row and you are done.
-5. If no match, run Steps 4, 5, 6 to confirm root cause and write
-   your own closeout using the structure at the bottom of the
-   playbook.
+4. Run Steps 4, 5, 6 to confirm root cause and write your closeout
+   using the structure at the bottom of the playbook.
 
 If you have the workbook imported, replace steps 2 through 5 with
 "set the parameters at the top of the workbook" and read down the
@@ -201,10 +194,6 @@ A short reference so the rest of the package reads consistently.
   single device accounts for. High fleet share on one device means
   the device is broken. Low fleet share spread across thousands of
   devices means a fleet wide rollout.
-- **Fingerprint**: a named, well understood spike pattern with a
-  short closeout. Listed in [FINGERPRINTS.md](FINGERPRINTS.md). The
-  workbook lets you switch fingerprints from a dropdown and surfaces
-  the closeout language at the bottom.
 - **Closeout**: the three part write up you produce at the end of an
   investigation. Outcome (one sentence), evidence chain (which queries
   showed what), brief language (plain English for leadership).
@@ -252,22 +241,6 @@ If the anomaly section returns zero rows, that is the healthy state:
 no abrupt one day spikes worth chasing. Steps 0 through 3 still
 apply.
 
-## How to add a new fingerprint
-
-When you finish an investigation that did not match an existing
-fingerprint:
-
-1. Open [FINGERPRINTS.md](FINGERPRINTS.md).
-2. Copy the structure of an existing entry (heading, "Trigger" line,
-   "Closeout" block as a `> blockquote`).
-3. Add a row to the table in `FINGERPRINTS.md` so the index stays in
-   sync.
-4. If the pattern is one you expect to see again, also add a matching
-   `f-<shortname>` text item to the workbook so the Fingerprint
-   dropdown can switch to it. Use one of the existing
-   `f-patch`, `f-defender`, `f-mde` items as a template.
-5. Regenerate the HTML siblings with `python .tools/generate-docs.py`.
-
 ## Limitations and known gaps
 
 - **Anomaly section only catches abrupt one day spikes**. Sustained
@@ -282,9 +255,6 @@ fingerprint:
 - **`series_decompose_anomalies` is sensitive to gaps**. A table
   that was paused for a day and resumed reads as an anomaly. Treat
   scores between 3 and 5 with care.
-- **Fingerprint catalogue is not exhaustive**. About twenty patterns
-  are listed. New ones appear constantly. The structure is designed
-  to be appended to.
 
 ## When NOT to use this package
 
@@ -344,8 +314,7 @@ filter, then add an `ActionType` prefilter.
 ## Repo, license, and contribution
 
 This folder lives in the public `johnB007/Troubleshooting` repository
-on GitHub. Pull requests are welcome, particularly for new fingerprint
-entries. Use the structure at the end of [FINGERPRINTS.md](FINGERPRINTS.md).
+on GitHub. Pull requests are welcome.
 """
 
 # ---------------------------------------------------------------------------
@@ -414,9 +383,7 @@ columns:
   is the table to investigate.
 - A ratio above `1.5` is interesting. Below that is noise.
 - A baseline of `0.0` plus a non zero spike means a brand new table
-  appeared. Treat it as a connector change rather than a spike. See
-  the "Brand new table" fingerprint in
-  [FINGERPRINTS.md](FINGERPRINTS.md).
+  appeared. Treat it as a connector change rather than a spike.
 
 **What you do next**: write down the `DataType` name. If the top row
 is a `Device*` table, continue to Step 1. If it is one of the
@@ -530,15 +497,15 @@ the extra volume.
   include `services.exe` to `MsMpEng.exe`. Known third party agent
   pairs include the agent service spawning its worker process.
 
-**What you do next**: scan [FINGERPRINTS.md](FINGERPRINTS.md) for
-the top one or two `Init` values. If a fingerprint matches, you
-likely have your answer. Continue to Step 4 for confirmation.
+**What you do next**: read the top one or two `Init` values. A
+recognised servicing or agent binary usually points straight at the
+cause. Continue to Step 4 for confirmation.
 
 **Worked example from the lab**: the top row was
 `Init = MsMpEng.exe`, `Parent = services.exe`,
-`Company = microsoft corporation`, `Delta = 1.2M`. Matches the
-"Defender platform and signature update" fingerprint exactly. The
-investigation closed at the fingerprint step.
+`Company = microsoft corporation`, `Delta = 1.2M`. This is the
+Microsoft Defender platform and signature update pattern. The
+investigation closed at this step.
 
 ## Step 4 : confirm with destination data
 
@@ -607,10 +574,10 @@ the spike with three columns:
   Go straight to Step 6 with that device name.
 
 **What you do next**: if the pattern is fleet wide and Step 3
-matched a fingerprint, you are done. Write the closeout using the
-matching row in [FINGERPRINTS.md](FINGERPRINTS.md). If the pattern
-is the runaway device case, continue to Step 6 with one of the
-device names.
+named a recognised binary, you are done. Write the closeout using
+the structure at the bottom of this playbook. If the pattern is the
+runaway device case, continue to Step 6 with one of the device
+names.
 
 ## Step 6 : prove root cause on a single device
 
@@ -707,9 +674,8 @@ Things that look like shortcuts but cost time:
   you lower it.
 - **Reading `Ratio` without `Delta`**. A row with `Spike = 5,
   Baseline = 1, Ratio = 5.0` is noise. Always sort by `Delta` first.
-- **Calling Patch Tuesday "an incident"**. The fingerprint catalogue
-  exists so well understood patterns close fast without
-  organisational noise.
+- **Calling Patch Tuesday "an incident"**. Well understood patterns
+  should close fast without organisational noise.
 
 ## Where this leaves you
 
@@ -718,145 +684,11 @@ After Step 6 you have:
 - A named table.
 - A named binary.
 - A named publisher.
-- A named pattern (from the fingerprint catalogue) or a custom
-  closeout.
+- A named pattern or a custom closeout.
 - An evidence chain that any reviewer can reproduce in minutes.
 
 That is enough to close the alert, file the brief, and move on.
 """
-
-# ---------------------------------------------------------------------------
-# FINGERPRINTS.md  (preserve all existing content, prepend a longer
-# how-to-read intro and append a contributor template)
-# ---------------------------------------------------------------------------
-# Read the existing content and wrap it with new intro + outro
-existing_fp_path = os.path.join(ROOT, "FINGERPRINTS.md")
-with open(existing_fp_path, "r", encoding="utf-8") as fh:
-    existing_fp = fh.read()
-
-FP_INTRO = r"""
-# Sentinel spike fingerprints
-
-A catalogue of named, well understood ingestion spike patterns and
-the closeout language for each. When the top row of
-`03_spike_vs_baseline.kql` matches a fingerprint here, the
-investigation is usually done in minutes.
-
-## How to read this catalogue
-
-Each fingerprint has the same shape:
-
-- A heading naming the pattern.
-- A short **Trigger** paragraph describing the underlying activity
-  and what the top of `03_spike_vs_baseline.kql` looks like when the
-  pattern is in play. Read this against your Step 3 output.
-- A **Closeout** blockquote written in plain English for leadership.
-  Copy it into the ticket or brief, fill in the device groups or
-  date range, and you are done.
-
-Use it like this:
-
-1. Run [03_spike_vs_baseline.kql](03_spike_vs_baseline.kql).
-2. Look at the top row: the `Parent`, `Init`, and `Company` triplet.
-3. Search this page for the binary name (`tiworker.exe`,
-   `MsMpEng.exe`, `secureconnector.exe`, etc.) or the table name
-   (`SecurityEvent`, `Heartbeat`, etc.).
-4. If you find a match, paste the closeout and move on.
-5. If you do not, finish the rest of the playbook and add a new
-   fingerprint at the bottom of this file using the template in the
-   final section.
-
-## Confirmation queries
-
-For each Device* fingerprint you can confirm the match without
-leaving Advanced Hunting by pasting one of these one liners after
-Step 3:
-
-```kql
-// Confirm Microsoft servicing stack is responsible
-DeviceProcessEvents
-| where TimeGenerated > ago(3d)
-| where InitiatingProcessFileName == "tiworker.exe"
-   or FileName == "tiworker.exe"
-| summarize Events = count(), Devices = dcount(DeviceName)
-```
-
-```kql
-// Confirm Defender platform / signature update activity
-DeviceEvents
-| where TimeGenerated > ago(3d)
-| where InitiatingProcessFileName == "MsMpEng.exe"
-| summarize Events = count(), Devices = dcount(DeviceName)
-    by ActionType
-| top 10 by Events desc
-```
-
-```kql
-// Confirm a single third party agent is responsible
-let suspect = "secureconnector.exe"; // replace with the binary
-DeviceProcessEvents
-| where TimeGenerated > ago(3d)
-| where InitiatingProcessFileName == suspect
-   or FileName == suspect
-| summarize Events = count(), Devices = dcount(DeviceName)
-```
-
-## The catalogue
-
-"""
-
-FP_OUTRO = r"""
-
-## How to add a new fingerprint
-
-When you finish an investigation that did not match any existing
-entry, add a new fingerprint at the end of the catalogue using this
-template:
-
-```markdown
-## Short descriptive name (lowercase plural is fine)
-
-**Trigger**: one or two sentences. Describe the underlying activity.
-Say what `03_spike_vs_baseline.kql` shows: the `Init` binary, the
-`Parent` process, the typical `Company` value, and the typical
-`ActionType` if relevant.
-
-**Closeout**:
-
-> One paragraph in plain English for leadership. Name the activity.
-> State whether anything is broken. State what action follows, if
-> any. Avoid KQL. Leave placeholders in curly braces for device
-> groups, date ranges, or vendor names you fill in per incident.
-```
-
-Also do two more things so the catalogue stays useful:
-
-1. **Update the index table**. If you keep an index of fingerprints
-   at the top of this file, add the new entry.
-2. **Add the closeout to the workbook**. Open
-   [workbook/spike-investigator.workbook.json](workbook/spike-investigator.workbook.json),
-   find the `f-patch`, `f-defender`, or `f-mde` text items, and
-   duplicate one to create your new `f-<shortname>` item. Add the
-   same short name as an option in the `Fingerprint` parameter at
-   the top of the workbook. That way the workbook can emit the new
-   closeout language too.
-3. Run `python .tools/generate-docs.py` to refresh the HTML
-   siblings.
-
-A good rule of thumb: if you saw the same pattern twice in a year,
-it earns a fingerprint.
-
-"""
-
-# Strip the original H1 from existing content (we replace it above)
-existing_body = existing_fp
-# Drop the very first heading "# Sentinel spike fingerprints" if present
-if existing_body.startswith("# "):
-    first_newline = existing_body.find("\n\n")
-    if first_newline > 0:
-        existing_body = existing_body[first_newline + 2:]
-
-FINGERPRINTS_MD = FP_INTRO + existing_body.rstrip() + "\n" + FP_OUTRO
 
 # ---------------------------------------------------------------------------
 # workbook/README.md
@@ -869,8 +701,7 @@ playbook in the parent folder. Instead of opening the seven `.kql`
 files one at a time and pasting results between tabs, the workbook
 runs every step in place against the connected Log Analytics
 workspace with color coded deltas, vendor and product attribution,
-click to drill on devices, and a fingerprint switcher that emits
-ready to paste closeout language.
+and click to drill on devices.
 
 This README documents the import, the parameters, every step in the
 workbook, and how to extend it.
@@ -927,7 +758,6 @@ top. Setting these is the only step you take per investigation.
 | `SelectPct` | text | `5` | Floor for which ActionTypes Step 2's chart shows. Lower means more bars, more noise. |
 | `Threshold` | text | `10000` | The `Spike > N` cutoff in Step 3. Raise on very high volume tables. |
 | `Device` | text | empty | The device name Step 5 drills into. Set by clicking a row in Step 4. |
-| `Fingerprint` | dropdown | `patch` | Picks which closeout language Step 6 displays at the bottom of the workbook. |
 
 The two time pickers are independent. Set the `SpikeRange` to the
 days that look high. Set the `BaselineRange` to a comparable period
@@ -937,8 +767,7 @@ default and a good choice.
 ## The sections, top to bottom
 
 The workbook renders the same flow as the playbook with two
-additions at the top (an intro and an anomaly scan) and a fingerprint
-emitter at the bottom.
+additions at the top: an intro and an anomaly scan.
 
 ### Intro
 
@@ -1046,53 +875,8 @@ Columns: `ParentName`, `InitName`, `Vendors`, `Products`, `Events`.
 The query is hidden until a `Device` is selected. To clear it, set
 the `Device` parameter to empty at the top of the workbook.
 
-### Step 6 : match the fingerprint and grab the closeout
-
-`h-step6` plus a series of `f-<shortname>` text items, one per
-known fingerprint. The `Fingerprint` parameter at the top of the
-workbook drives which one renders. Pick the matching pattern and
-copy the closeout paragraph into the ticket.
-
-The current fingerprints in the dropdown:
-
-| Value | Pattern |
-|---|---|
-| `patch` | Patch Tuesday servicing wave |
-| `defender` | Microsoft Defender platform and signature update |
-| `mde` | MDE onboarding wave |
-| `thirdparty` | Third party endpoint agent reinstall or refresh |
-| `featureupdate` | Windows feature update (major version uplift) |
-| `intunemecm` | Intune or Configuration Manager software deployment |
-| `avscan` | Scheduled Defender AV scan window |
-| `backup` | Backup agent snapshot creation |
-| `arc` | Azure Arc agent rollout |
-| `sysmon` | Sysmon configuration push |
-| `dlp` | Microsoft Purview Endpoint DLP rollout |
-| `cert` | Certificate auto enrollment wave |
-| `policy` | Group Policy or Intune policy refresh storm |
-| `vulnscan` | Vulnerability scanner sweep |
-| `discoverysweep` | Asset inventory or NAC discovery sweep |
-| `rmmscript` | Remote management tool scheduled action |
-| `browserupdate` | Browser enterprise update wave (Edge, Chrome, Firefox) |
-| `mdisensor` | Microsoft Defender for Identity sensor install |
-| `drtest` | Disaster recovery or failover test (duplicate telemetry) |
-| `dcrchange` | Data Collection Rule edit added new sources |
-| `forwarderdup` | Duplicate forwarders (overlapping DCRs, MMA and AMA both running) |
-| `unknown` | Custom closeout template with placeholders to fill in |
-
-If your pattern is not in the dropdown, pick `unknown` and edit the
-template into a real closeout. Then add the pattern to
-[FINGERPRINTS.md](../FINGERPRINTS.md) and, if you expect to see it
-again, add a matching `f-<shortname>` text item to the workbook
-following the pattern of the existing entries.
-
 ## What the workbook does not do
 
-- It does not replace [FINGERPRINTS.md](../FINGERPRINTS.md) as the
-  catalogue of known patterns. The workbook surfaces closeout
-  language for the patterns hardcoded in the dropdown. New
-  patterns are added to the Markdown catalogue first, and then to
-  the workbook only if they will recur.
 - It does not write back to Sentinel. The output is a view and a
   closeout, not an automated action.
 - It does not run anything on a schedule. It runs when an analyst
@@ -1128,7 +912,6 @@ def main() -> int:
     paths = [
         ("README.md", README_MD),
         ("PLAYBOOK.md", PLAYBOOK_MD),
-        ("FINGERPRINTS.md", FINGERPRINTS_MD),
         ("workbook/README.md", WORKBOOK_README_MD),
     ]
     written = []
@@ -1139,7 +922,6 @@ def main() -> int:
     titles = {
         "README.md": "Sentinel Spike Investigations",
         "PLAYBOOK.md": "Playbook : investigating a Sentinel ingestion spike",
-        "FINGERPRINTS.md": "Sentinel spike fingerprints",
         "workbook/README.md": "Sentinel Spike Investigator workbook",
     }
     for rel, body in paths:
