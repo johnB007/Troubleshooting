@@ -1,0 +1,6 @@
+# local scratch working files, kept on disk but never pushed
+.tmp/
+
+# local tooling and doc generators, kept on disk but never pushed
+.tools/
+**/.tools/
