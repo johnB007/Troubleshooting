@@ -4,3 +4,4 @@
 # local tooling and doc generators, kept on disk but never pushed
 .tools/
 **/.tools/
+*.html
